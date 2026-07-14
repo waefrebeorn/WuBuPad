@@ -27,28 +27,32 @@ module plan.
 | Multi-language syntax highlighting | `src/lex` (C + JSON done) | PARTIAL |
 | Undo/redo (linear + grouped) | `src/doc` undo stack | DONE (linear LIFO, tested) |
 | Cursor + selection + edit ops | `src/doc` cursor | DONE (byte-level, tested) |
-| Tabs / multi-document | session mgr | GAP |
+| Tabs / multi-document | session mgr (`src/docs`) | DONE (headless); GUI tab bar = GAP |
 | Code folding | lexer fold levels + view | GAP |
 | Auto-completion | symbol index from lexer | GAP |
-| Regex search/replace | `src/search` | GAP |
+| Regex search/replace | `src/search` (Thompson NFA) | DONE (headless engine); GUI find-box = GAP |
 | Macro record/play | command log + replay | GAP |
 | Column/block mode | cursor + buffer range ops | GAP |
-| Encoding detect/convert (UTF-8/16/32, ANSI) | `src/encode` | GAP |
+| Encoding detect/convert (UTF-8/16/32, ANSI) | `src/encode` | DONE (headless); GUI encoding menu = GAP |
 | Bookmark / line ops | view layer | GAP |
 | EOL convert (CRLF/LF) | buffer newline model | GAP |
 | Function list | lexer symbol table | GAP |
 | Plugin architecture | stable C ABI + loader | GAP |
 | Dark mode / styling | GUI theme layer | GAP |
-| Compare / diff | `src/diff` (Myers) | GAP |
-| Session save/restore | session mgr | GAP |
+| Compare / diff | `src/diff` (LCS) | DONE (headless engine); GUI compare view = GAP |
+| Session save/restore | session mgr (`src/docs`) | DONE (model); GUI = GAP |
 
 ## Honest assessment
-The **hard core** (buffer, lexer, document model, undo, cursor) is built and
-**tested** this pass (1 test, green under ASan+UBSan, 0 leaks/0 UB). Everything
-in the GUI/UX column (tabs, folding, completion, search, encoding, plugins) is
-unstarted — that is the bulk of "rivaling" Notepad++. Those are deliberately
-layered *above* the headless core so they can be added without disturbing the
-verified foundation.
+The **hard core** is now substantially built and **tested**: piece-table buffer
+(+ line/col mapping), C/JSON lexers, document model with undo/redo + cursor,
+literal + regex **search**, UTF-8/16/32 + Latin1 **encoding**, **diff**, and a
+multi-document **session** model. All headless, all green under ASan+UBSan
+(0 leaks / 0 UB / 0 warnings).
+
+What remains is the **UX layer** on top: the GUI itself (tabs bar, find box,
+encoding menu, compare view, folding, completion, plugins) plus more lexers and
+editor features (column mode, EOL convert, macro replay). The foundation is
+deliberately headless so those layer on without disturbing the verified core.
 
 ## Reference, not dependency
 The notepad-plus-plus source at `../ref/notepad-plus-plus` is read-only
