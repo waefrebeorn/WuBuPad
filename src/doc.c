@@ -62,6 +62,18 @@ void doc_free(Doc *d) {
 size_t doc_length(const Doc *d) { return buf_length(d->buf); }
 char  *doc_text(const Doc *d) { return buf_to_string(d->buf); }
 size_t doc_lines(const Doc *d) { return buf_line_count(d->buf); }
+void doc_line_col(const Doc *d, size_t pos, size_t *line, size_t *col) {
+    buf_line_col_of(d->buf, pos, line, col);
+}
+size_t doc_line_byte_start(const Doc *d, size_t line) {
+    return buf_line_start(d->buf, line);
+}
+void doc_replace(Doc *d, size_t from, size_t to, const char *text) {
+    if (to > from) buf_delete(d->buf, from, to - from);
+    if (text && *text) buf_insert(d->buf, from, text, strlen(text));
+    d->cursor = from + (text ? strlen(text) : 0);
+    d->anchor = d->cursor;
+}
 
 static void push_undo(Doc *d, Op o) {
     /* drop any redo history on a new edit */

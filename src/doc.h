@@ -17,6 +17,16 @@ size_t doc_length(const Doc *d);
 char *doc_text(const Doc *d);
 /* line count */
 size_t doc_lines(const Doc *d);
+/* map a byte position to 0-based (line, col) */
+void doc_line_col(const Doc *d, size_t pos, size_t *line, size_t *col);
+/* byte offset of the start of line `line` (0-based) */
+size_t doc_line_byte_start(const Doc *d, size_t line);
+/* total byte length of the document */
+size_t doc_length(const Doc *d);
+
+/* replace the range [from,to) with `text` (records undo as delete+insert).
+ * Convenience for search/replace driven by the agent protocol. */
+void doc_replace(Doc *d, size_t from, size_t to, const char *text);
 
 /* ---- editing (records undo) ----------------------------------------- */
 void doc_insert(Doc *d, size_t pos, const char *text, size_t len);
