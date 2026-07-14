@@ -24,7 +24,11 @@ endif()
 add_library(wubupad_core STATIC
   src/buffer.c
   src/lex.c
-  src/doc.c)
+  src/doc.c
+  src/search.c
+  src/encode.c
+  src/diff.c
+  src/docs.c)
 target_include_directories(wubupad_core PUBLIC src)
 
 # Acceptance test for the core.

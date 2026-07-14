@@ -115,6 +115,41 @@ size_t buf_line_count(const Buf *b) {
     return lines;
 }
 
+void buf_line_col_of(const Buf *b, size_t pos, size_t *line, size_t *col) {
+    size_t total = buf_length(b);
+    if (pos > total) pos = total;
+    size_t ln = 0, lc = 0;
+    for (size_t i = 0; i < pos; i++) {
+        if (buf_char_at(b, i) == '\n') { ln++; lc = 0; }
+        else lc++;
+    }
+    if (line) *line = ln;
+    if (col) *col = lc;
+}
+
+size_t buf_line_start(const Buf *b, size_t line) {
+    size_t total = buf_length(b);
+    size_t ln = 0;
+    if (line == 0) return 0;
+    for (size_t i = 0; i < total; i++) {
+        if (buf_char_at(b, i) == '\n') {
+            ln++;
+            if (ln == line) return i + 1;   /* char after the newline */
+        }
+    }
+    return total;   /* line past end -> end of doc */
+}
+
+size_t buf_pos_of_line_col(const Buf *b, size_t line, size_t col) {
+    size_t start = buf_line_start(b, line);
+    size_t total = buf_length(b);
+    size_t i = start;
+    while (i < total && col > 0 && buf_char_at(b, i) != '\n') {
+        i++; col--;
+    }
+    return i;
+}
+
 /* Locate the piece containing document position `pos` and the in-piece
  * offset; returns piece index, or b->n (sentinel) if pos == end. */
 static size_t find_piece(const Buf *b, size_t pos, size_t *in_off) {

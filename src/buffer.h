@@ -34,4 +34,14 @@ char *buf_to_string(const Buf *b);
 /* Number of lines (newline count, +1 if any content / trailing line). */
 size_t buf_line_count(const Buf *b);
 
+/* Map a byte position to 0-based (line, col). col is the byte offset within
+ * the line (not a screen column). */
+void buf_line_col_of(const Buf *b, size_t pos, size_t *line, size_t *col);
+
+/* Map a 0-based (line, col) back to a byte position (clamped to line length). */
+size_t buf_pos_of_line_col(const Buf *b, size_t line, size_t col);
+
+/* Start byte position of a 0-based line (0 if line >= line_count). */
+size_t buf_line_start(const Buf *b, size_t line);
+
 #endif /* WUBUPAD_BUFFER_H */
