@@ -17,6 +17,7 @@
 #include <SDL2/SDL.h>
 #include <ft2build.h>
 #include FT_FREETYPE_H
+#include "shape/shape.h"   /* optional HarfBuzz/FriBidi shaping */
 
 /* Token kinds used by draw_line's `kind` arg (mirrors LexTok from lex.h). */
 typedef enum {
@@ -29,8 +30,9 @@ typedef enum {
 typedef struct {
     SDL_Texture *tex;     /* per-glyph texture (works on any driver) */
     int w, h;             /* glyph bitmap size */
-    int bx, by;           /* glyph bbox offset */
+    int bx, by;           /* glyph bbox offset (bx also stashes codepoint) */
     int ax;               /* advance x */
+    int gidx;             /* FreeType glyph index (-1 if cached by codepoint) */
 } Glyph;
 
 typedef struct {
@@ -45,7 +47,12 @@ typedef struct {
     UITheme *theme;        /* semantic palette (persisted) */
     int caret_on;
     int init_ok;
+    ShapeCtx *shape;       /* text shaping (NULL = legacy path) */
+    int *caret_x;          /* per-row source-char pixel x (row*CARET_STRIDE) */
 } GFX;
+
+/* forward decl: color resolver defined below, used by blit helpers */
+static UIRGB gfx_color(GFX *g, UIToken tok);
 
 /* --- glyph cache (per-glyph texture; no render-target needed) --- */
 static int gfx_glyph_index(GFX *g, Uint32 cp) {
@@ -54,7 +61,11 @@ static int gfx_glyph_index(GFX *g, Uint32 cp) {
         if ((Uint32)g->glyphs[i].bx == cp) return i;
     return -1;
 }
-
+static int gfx_glyph_index_by_glyph(GFX *g, unsigned int gidx) {
+    for (int i = 0; i < g->nglyphs; i++)
+        if ((unsigned int)g->glyphs[i].gidx == gidx) return i;
+    return -1;
+}
 static int gfx_cache_glyph(GFX *g, Uint32 cp) {
     if (g->nglyphs >= g->capglyph) {
         int nc = g->capglyph ? g->capglyph * 2 : 256;
@@ -68,6 +79,7 @@ static int gfx_cache_glyph(GFX *g, Uint32 cp) {
     Glyph *gl = &g->glyphs[g->nglyphs];
     memset(gl, 0, sizeof *gl);
     gl->bx = (int)cp;  /* stash codepoint */
+    gl->gidx = -1;
     gl->ax = (int)(slot->advance.x >> 6);
     gl->w = w; gl->h = h;
     gl->by = slot->bitmap_top;
@@ -94,6 +106,59 @@ static int gfx_cache_glyph(GFX *g, Uint32 cp) {
         gl->tex = t;
     }
     return g->nglyphs++;
+}
+/* cache by FreeType glyph index (shaping path) */
+static int gfx_cache_glyph_index(GFX *g, unsigned int gidx) {
+    if (g->nglyphs >= g->capglyph) {
+        int nc = g->capglyph ? g->capglyph * 2 : 256;
+        Glyph *ng = realloc(g->glyphs, nc * sizeof *ng);
+        if (!ng) return -1;
+        g->glyphs = ng; g->capglyph = nc;
+    }
+    if (FT_Load_Glyph(g->face, gidx, FT_LOAD_RENDER) != 0) return -1;
+    FT_GlyphSlot slot = g->face->glyph;
+    int w = slot->bitmap.width, h = slot->bitmap.rows;
+    Glyph *gl = &g->glyphs[g->nglyphs];
+    memset(gl, 0, sizeof *gl);
+    gl->gidx = (int)gidx;
+    gl->bx = -1;
+    gl->ax = (int)(slot->advance.x >> 6);
+    gl->w = w; gl->h = h;
+    gl->by = slot->bitmap_top;
+    if (w > 0 && h > 0) {
+        SDL_Texture *t = SDL_CreateTexture(g->ren, SDL_PIXELFORMAT_RGBA32,
+                                           SDL_TEXTUREACCESS_STATIC, w, h);
+        if (!t) return -1;
+        unsigned char *pix = malloc((size_t)w * h * 4);
+        if (!pix) { SDL_DestroyTexture(t); return -1; }
+        const unsigned char *src = slot->bitmap.buffer;
+        for (int yy = 0; yy < h; yy++) {
+            for (int xx = 0; xx < w; xx++) {
+                unsigned char a = src[yy * slot->bitmap.pitch + xx];
+                pix[(yy * w + xx) * 4 + 0] = 255;
+                pix[(yy * w + xx) * 4 + 1] = 255;
+                pix[(yy * w + xx) * 4 + 2] = 255;
+                pix[(yy * w + xx) * 4 + 3] = a;
+            }
+        }
+        SDL_UpdateTexture(t, NULL, pix, w * 4);
+        SDL_SetTextureBlendMode(t, SDL_BLENDMODE_BLEND);
+        free(pix);
+        gl->tex = t;
+    }
+    return g->nglyphs++;
+}
+/* blit a glyph by index (shaping path) */
+static void gfx_blit_glyph(GFX *g, unsigned int gidx, int px, int py, UIToken tok) {
+    int gi = gfx_glyph_index_by_glyph(g, gidx);
+    if (gi < 0) gi = gfx_cache_glyph_index(g, gidx);
+    if (gi < 0) return;
+    Glyph *gl = &g->glyphs[gi];
+    if (!gl->tex || gl->w <= 0 || gl->h <= 0) return;
+    UIRGB c = gfx_color(g, tok);
+    SDL_SetTextureColorMod(gl->tex, c.r, c.g, c.b);
+    SDL_Rect dst = { px, py - gl->by + g->line_h, gl->w, gl->h };
+    SDL_RenderCopy(g->ren, gl->tex, NULL, &dst);
 }
 
 static UIRGB gfx_color(GFX *g, UIToken tok) {
@@ -157,6 +222,15 @@ static int gfx_init(void **st, int cols, int rows) {
     }
     FT_Set_Pixel_Sizes(g->face, 0, FONT_PT);
 
+#ifdef WUBUPAD_WITH_SHAPE
+    g->shape = shape_create(g->face);
+    if (!g->shape) fprintf(stderr, "gfx_init: shaping unavailable (HarfBuzz/FriBidi)\n");
+    g->caret_x = calloc((size_t)g->rows * 4096, sizeof(int));
+#else
+    g->shape = NULL;
+    g->caret_x = NULL;
+#endif
+
     /* metrics: use ascii 'M' advance + line height */
     int gi = gfx_cache_glyph(g, (Uint32)'M');
     g->char_w = (gi >= 0) ? g->glyphs[gi].ax : 9;
@@ -183,6 +257,8 @@ static void gfx_destroy(void *st) {
         free(g->glyphs);
     }
     if (g->theme) ui_theme_free(g->theme);
+    if (g->shape) shape_destroy(g->shape);
+    if (g->caret_x) free(g->caret_x);
     if (g->face) FT_Done_Face(g->face);
     if (g->ft) FT_Done_FreeType(g->ft);
     if (g->ren) SDL_DestroyRenderer(g->ren);
@@ -218,7 +294,25 @@ static void gfx_draw_line(void *st, int row, const char *text, int len, int kind
     gfx_fill(g, 0, py, g->cols * g->char_w, g->line_h, TOK_SURFACE);
     UIToken tok = (UIToken)gfx_kind_token(kind);
     int n = len < 0 ? (int)strlen(text ? text : "") : len;
-    int px = g->char_w * 5 + 2;   /* leave room for the gutter */
+    int px0 = g->char_w * 5 + 2;   /* leave room for the gutter */
+
+#ifdef WUBUPAD_WITH_SHAPE
+    if (g->shape) {
+        ShapeGlyph *gly = NULL;
+        int gc = 0, adv = 0;
+        int cap = (n > 4096) ? 4096 : n;
+        int *cx = (g->caret_x && cap > 0) ? &g->caret_x[(size_t)row * 4096] : NULL;
+        shape_line(g->shape, text ? text : "", SHAPE_DIR_AUTO, &gly, &gc, &adv, cx, cap);
+        int px = px0;
+        for (int i = 0; i < gc; i++) {
+            gfx_blit_glyph(g, gly[i].glyph, px + gly[i].x, py + gly[i].y, tok);
+            px += gly[i].ax;
+        }
+        free(gly);
+        return;
+    }
+#endif
+    int px = px0;
     for (int i = 0; i < n; i++) {
         unsigned char c = (unsigned char)text[i];
         gfx_draw_glyph(g, c, px, py, tok);
@@ -229,7 +323,18 @@ static void gfx_draw_line(void *st, int row, const char *text, int len, int kind
 static void gfx_draw_caret(void *st, int row, int col) {
     GFX *g = st;
     if (!g || !g->init_ok) return;
-    int x = g->char_w * 5 + 2 + col * g->char_w, y = row * g->line_h;
+    int x;
+#ifdef WUBUPAD_WITH_SHAPE
+    if (g->shape && g->caret_x && row >= 0 && row < g->rows) {
+        int idx = col; if (idx < 0) idx = 0; if (idx > 4095) idx = 4095;
+        x = g->char_w * 5 + 2 + g->caret_x[(size_t)row * 4096 + idx];
+    } else {
+        x = g->char_w * 5 + 2 + col * g->char_w;
+    }
+#else
+    x = g->char_w * 5 + 2 + col * g->char_w;
+#endif
+    int y = row * g->line_h;
     gfx_fill(g, x, y, 2, g->line_h, TOK_CARET);
 }
 
@@ -380,7 +485,6 @@ const UI_Backend *ui_gfx_backend(void) {
         gfx_init, gfx_destroy, gfx_draw_line, gfx_draw_caret,
         gfx_present, gfx_get_key, gfx_resize,
         gfx_chrome_rows, gfx_draw_gutter, gfx_draw_tab,
-        gfx_draw_status, gfx_draw_symbols, gfx_set_theme}
-    };
+        gfx_draw_status, gfx_draw_symbols, gfx_set_theme};
     return &b;
 }

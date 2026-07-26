@@ -69,11 +69,36 @@ add_library(wubupad_ui STATIC
 target_include_directories(wubupad_ui PUBLIC src)
 target_link_libraries(wubupad_ui PUBLIC wubupad_core)
 
+# --- Text shaping (HarfBuzz + FriBidi) -- optional, gates wubushape ---
+find_package(PkgConfig QUIET)
+set(WUBUPAD_WITH_SHAPE OFF)
+if(PkgConfig_FOUND)
+  pkg_check_modules(HARFBUZZ QUIET harfbuzz)
+  pkg_check_modules(FRIBIDI  QUIET fribidi)
+  if(HARFBUZZ_FOUND AND FRIBIDI_FOUND)
+    set(WUBUPAD_WITH_SHAPE ON)
+    add_compile_definitions(WUBUPAD_WITH_SHAPE=1)
+    message(STATUS "WuBuPad: text shaping ENABLED (HarfBuzz + FriBidi)")
+  else()
+    message(STATUS "WuBuPad: text shaping DISABLED (HarfBuzz/FriBidi not found)")
+  endif()
+else()
+  message(STATUS "WuBuPad: text shaping DISABLED (pkg-config unavailable)")
+endif()
+
+# Shaping lib (always defined; empty stub when deps missing).
+add_library(wubushape STATIC src/shape/shape.c)
+target_include_directories(wubushape PUBLIC src)
+if(WUBUPAD_WITH_SHAPE)
+  target_include_directories(wubushape PUBLIC ${HARFBUZZ_INCLUDE_DIRS} ${FRIBIDI_INCLUDE_DIRS})
+  target_link_libraries(wubushape PUBLIC ${HARFBUZZ_LIBRARIES} ${FRIBIDI_LIBRARIES})
+endif()
+
 # Graphical backend (optional). Provides ui_gfx_backend() on top of wubupad_ui.
 if(WUBUPAD_WITH_GFX)
   add_library(wubupad_gfx STATIC src/ui/ui_gfx.c)
   target_include_directories(wubupad_gfx PUBLIC src)
-  target_link_libraries(wubupad_gfx PUBLIC wubupad_ui SDL2::SDL2 Freetype::Freetype)
+  target_link_libraries(wubupad_gfx PUBLIC wubupad_ui wubushape SDL2::SDL2 Freetype::Freetype)
 endif()
 
 # wubuOS-facing CLI: NDJSON in -> NDJSON out, plus an interactive TUI/gfx mode.
@@ -120,6 +145,13 @@ if(SDL2_FOUND AND FREETYPE_FOUND)
   add_executable(test_ui_gfx tests/test_ui_gfx.c)
   target_link_libraries(test_ui_gfx PRIVATE wubupad_gfx SDL2::SDL2 Freetype::Freetype)
   add_test(NAME ui_gfx COMMAND test_ui_gfx)
+endif()
+
+# Acceptance test for text shaping (HarfBuzz + FriBidi).
+if(WUBUPAD_WITH_SHAPE)
+  add_executable(test_shape tests/test_shape.c)
+  target_link_libraries(test_shape PRIVATE wubushape Freetype::Freetype)
+  add_test(NAME shape COMMAND test_shape)
 endif()
 
 # Acceptance test for the agent protocol.
