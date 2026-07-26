@@ -16,6 +16,12 @@
 #include <stdio.h>
 #include <ctype.h>
 
+/* forward decl (defined later in this TU) */
+static void ui_complete_reset(UI *ui);
+/* ui_symbols is defined later in this TU; declared in ui.h but repeated here
+ * so ui_render (defined earlier) sees it without relying on TU order. */
+int ui_symbols(const UI *ui, DocSymbol **out, size_t *n);
+
 /* declared in ui_headless.c */
 const UI_Backend *ui_headless_backend(void);
 /* declared in ui_tty.c */
@@ -38,6 +44,12 @@ struct UI {
     Docs *docs;         /* multi-doc session (Phase C, NULL = single) */
     size_t fold[128];    /* folded ranges as pairs (a0,b0,a1,b1,...); even cnt */
     int    fold_n;       /* number of ranges (each uses 2 slots) */
+    /* active completion session (Ctrl-Space cycling) */
+    char  *comp_prefix;  /* word being completed */
+    char **comp_list;    /* candidate list */
+    size_t comp_n;       /* candidate count */
+    int    comp_idx;     /* index of currently-shown candidate (-1 = none) */
+    int    show_symbols; /* function-list panel toggle */
 };
 
 UI *ui_create(Doc *doc, const UI_Backend *be, int cols, int rows) {
@@ -48,6 +60,7 @@ UI *ui_create(Doc *doc, const UI_Backend *be, int cols, int rows) {
     ui->be  = be;
     ui->cols = cols > 0 ? cols : 80;
     ui->rows = rows > 0 ? rows : 24;
+    ui->comp_idx = -1;
     ui->find = ui_find_create();
     ui->theme = ui_theme_create();
     if (ui->theme) ui_theme_load(ui->theme);
@@ -61,6 +74,7 @@ void ui_free(UI *ui) {
     if (!ui) return;
     if (ui->find) ui_find_free(ui->find);
     if (ui->theme) ui_theme_free(ui->theme);
+    ui_complete_reset(ui);
     if (ui->be && ui->be->destroy) ui->be->destroy(ui->bstate);
     free(ui);
 }
@@ -273,6 +287,17 @@ void ui_render(UI *ui, const char *lang) {
         ui->be->draw_status(ui->bstate, status_row, st);
     }
 
+    /* function-list panel (right gutter) */
+    if (ui_symbols_visible(ui) && ui->be->draw_symbols) {
+        DocSymbol *syms = NULL; size_t n = 0;
+        if (ui_symbols(ui, &syms, &n)) {
+            for (size_t i = 0; i < n && (int)i < text_rows; i++)
+                ui->be->draw_symbols(ui->bstate, text_top + (int)i,
+                                    syms[i].name, (int)syms[i].line);
+            doc_symbols_free(syms, n);
+        }
+    }
+
     ui->be->present(ui->bstate);
     free(text);
     if (lx) lex_free(lx);
@@ -283,6 +308,8 @@ void ui_render(UI *ui, const char *lang) {
  * event into the attached macro when recording. */
 void ui_apply(UI *ui, char ch, int key) {
     if (!ui) return;
+    /* any edit other than cycling completion cancels an active session */
+    if (key != UI_KEY_COMPLETE) ui_complete_reset(ui);
     switch (key) {
         case UI_KEY_LEFT:   ui_cursor_left(ui);  break;
         case UI_KEY_RIGHT:  ui_cursor_right(ui); break;
@@ -306,6 +333,7 @@ void ui_apply(UI *ui, char ch, int key) {
         case UI_KEY_REPLAY:  ui_replay_macro(ui); break;
         case UI_KEY_COMPLETE: ui_complete(ui);   break;
         case UI_KEY_FOLD:     ui_fold_current_block(ui); break;
+        case UI_KEY_SYMBOLS:  ui_toggle_symbols(ui); break;
         default:
             if (ch == '\n') ui_newline(ui);
             else if (ch) { char buf[2] = {ch,0}; ui_insert_text(ui, buf, 1); }
@@ -531,33 +559,100 @@ int ui_fold_current_block(UI *ui) {
     return 1;
 }
 
+static void ui_complete_reset(UI *ui) {
+    if (!ui) return;
+    free(ui->comp_prefix);
+    for (size_t i = 0; i < ui->comp_n; i++) free(ui->comp_list[i]);
+    free(ui->comp_list);
+    ui->comp_prefix = NULL;
+    ui->comp_list = NULL;
+    ui->comp_n = 0;
+    ui->comp_idx = -1;
+}
+
 void ui_complete(UI *ui) {
     if (!ui || !ui->doc) return;
+
+    /* Continue an active session: replace the current candidate with the next. */
+    if (ui->comp_idx >= 0 && ui->comp_n > 0) {
+        const char *cur = ui->comp_list[ui->comp_idx];
+        size_t cur_len = strlen(cur);
+        size_t pl = strlen(ui->comp_prefix);
+        size_t ins_len = cur_len > pl ? cur_len - pl : 0;   /* suffix shown */
+        size_t pos = doc_cursor(ui->doc);
+        if (ins_len) doc_delete(ui->doc, pos - ins_len, ins_len);  /* remove shown */
+        ui->comp_idx = (ui->comp_idx + 1) % (int)ui->comp_n;
+        const char *next = ui->comp_list[ui->comp_idx];
+        size_t nlen = strlen(next);
+        size_t nins = nlen > pl ? nlen - pl : 0;
+        if (nins) {
+            char *suf = malloc(nins + 1);
+            memcpy(suf, next + pl, nins);
+            suf[nins] = 0;
+            doc_insert(ui->doc, doc_cursor(ui->doc), suf, nins);
+            free(suf);
+        }
+        ui_scroll_to_cursor(ui);
+        return;
+    }
+
+    /* Start a new session. */
     char *text = doc_text(ui->doc);
     size_t len = strlen(text);
     size_t pos = doc_cursor(ui->doc);
-    /* find start of the word under/before the cursor */
     size_t start = pos;
     while (start > 0 && (isalnum((unsigned char)text[start-1]) || text[start-1] == '_'))
         start--;
     if (start == pos) { free(text); return; }   /* nothing to complete */
-    char *prefix = malloc(pos - start + 1);
-    memcpy(prefix, text + start, pos - start);
-    prefix[pos - start] = 0;
+    size_t pl = pos - start;
+    char *prefix = malloc(pl + 1);
+    memcpy(prefix, text + start, pl);
+    prefix[pl] = 0;
     size_t n = 0;
     char **c = doc_complete(text, len, prefix, &n);
-    if (n > 0) {
-        const char *best = c[0];
-        size_t pl = strlen(prefix);
-        /* insert the part of the best match beyond the prefix */
-        const char *suf = best + pl;
-        if (*suf) doc_insert(ui->doc, pos, suf, strlen(suf));
-    }
-    doc_complete_free(c, n);
-    free(prefix);
     free(text);
+    if (n == 0) { free(prefix); return; }
+    /* stash for cycling */
+    ui_complete_reset(ui);
+    ui->comp_prefix = prefix;        /* transferred */
+    ui->comp_list = c;
+    ui->comp_n = n;
+    ui->comp_idx = 0;
+    const char *best = c[0];
+    size_t best_len = strlen(best);
+    size_t ins_len = best_len > pl ? best_len - pl : 0;
+    if (ins_len) {
+        char *suf = malloc(ins_len + 1);
+        memcpy(suf, best + pl, ins_len);
+        suf[ins_len] = 0;
+        doc_insert(ui->doc, pos, suf, ins_len);
+        free(suf);
+    }
     ui_scroll_to_cursor(ui);
 }
+
+/* --- symbol / function list (Phase D) --- */
+int ui_symbols(const UI *ui, DocSymbol **out, size_t *n) {
+    if (!ui || !ui->doc) return 0;
+    char *text = doc_text(ui->doc);
+    size_t len = strlen(text);
+    *out = doc_symbols(text, len, n);
+    free(text);
+    return 1;
+}
+void ui_function_list_string(const DocSymbol *syms, size_t n, char *buf, size_t bufn) {
+    size_t off = 0;
+    buf[0] = 0;
+    for (size_t i = 0; i < n; i++) {
+        int k = snprintf(buf + off, bufn - off, "%s : L%zu\n",
+                         syms[i].name, syms[i].line + 1);
+        if (k < 0) break;
+        off += (size_t)k;
+        if (off >= bufn) break;
+    }
+}
+int ui_symbols_visible(const UI *ui) { return ui ? ui->show_symbols : 0; }
+void ui_toggle_symbols(UI *ui) { if (ui) ui->show_symbols = !ui->show_symbols; }
 
 /* These live here because UI is a complete type only in this TU. They reach
  * into the headless backend's state, which ui_headless.c owns. We keep the

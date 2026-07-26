@@ -54,12 +54,30 @@ int main(void) {
     Doc *d = doc_create("foo food\nfo");
     UI *ui = ui_create(d, ui_headless_backend(), 80, 24);
     doc_set_cursor(d, 11);            /* end: after "fo" on line 2 */
-    ui_complete(ui);                 /* should expand "fo" -> "foo" (first) */
+    ui_complete(ui);                 /* 1st: expands fo -> foo (candidate 0) */
     char *t = doc_text(d);
-    CHECK(strcmp(t, "foo food\nfoo") == 0, "ui_complete expands fo -> foo");
+    CHECK(strcmp(t, "foo food\nfoo") == 0, "ui_complete 1st -> foo");
+    free(t);
+    ui_complete(ui);                 /* 2nd: cycle to food (candidate 1) */
+    t = doc_text(d);
+    CHECK(strcmp(t, "foo food\nfood") == 0, "ui_complete 2nd -> food (cycle)");
+    free(t);
+    ui_complete(ui);                 /* 3rd: wrap back to foo */
+    t = doc_text(d);
+    CHECK(strcmp(t, "foo food\nfoo") == 0, "ui_complete 3rd -> wraps to foo");
     free(t);
     ui_free(ui);
     doc_free(d);
+
+    /* --- function-list string builder --- */
+    DocSymbol syms[2] = {
+        { .name = "main", .line = 0, .is_func = 1 },
+        { .name = "helper", .line = 9, .is_func = 1 },
+    };
+    char fb[64];
+    ui_function_list_string(syms, 2, fb, sizeof fb);
+    CHECK(strstr(fb, "main : L1") != NULL, "func list has main:L1");
+    CHECK(strstr(fb, "helper : L10") != NULL, "func list has helper:L10");
 
     if (failures) { printf("FAILED (%d)\n", failures); return 1; }
     printf("PASS: completion + symbols (Phase D)\n");

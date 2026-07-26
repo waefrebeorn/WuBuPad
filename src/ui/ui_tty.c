@@ -107,6 +107,7 @@ static int tty_get_key(void *st, char *ch, int *key) {
         case 14:  *key = UI_KEY_REPLAY; break; /* ctrl-n replay macro */
         case 19:  *key = UI_KEY_COMPLETE;break; /* ctrl-space complete */
         case 6:   *key = UI_KEY_FOLD;    break; /* ctrl-f fold block */
+        case 12:  *key = UI_KEY_SYMBOLS; break; /* ctrl-l symbol panel */
         default:  *key = UI_KEY_NONE;  break;
     }
     return 0;

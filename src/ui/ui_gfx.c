@@ -285,6 +285,22 @@ static void gfx_set_theme(void *st, int dark) {
     ui_theme_set_dark(g->theme, dark);
 }
 
+/* function-list panel: draw symbol name right-aligned in the right gutter. */
+static void gfx_draw_symbols(void *st, int row, const char *name, int line_no) {
+    GFX *g = st;
+    if (!g || !g->init_ok) return;
+    int panel_w = 24 * g->char_w;           /* panel width */
+    int x0 = g->cols * g->char_w - panel_w;
+    int py = row * g->line_h;
+    gfx_fill(g, x0, py, panel_w, g->line_h, TOK_SURFACE_ALT);
+    char buf[40];
+    snprintf(buf, sizeof buf, "%s : L%d", name ? name : "", line_no + 1);
+    int n = (int)strlen(buf);
+    int px = g->cols * g->char_w - panel_w + 4;
+    for (int i = 0; i < n; i++)
+        gfx_draw_glyph(g, (unsigned char)buf[i], px + i * g->char_w, py, TOK_COMMENT);
+}
+
 static void gfx_present(void *st) {
     GFX *g = st;
     if (!g || !g->init_ok) return;
@@ -313,6 +329,7 @@ static int gfx_get_key(void *st, char *ch, int *key) {
             case SDLK_z: *key = UI_KEY_UNDO; return 0;
             case SDLK_y: *key = UI_KEY_REDO; return 0;
             case SDLK_f: *key = (mod & KMOD_SHIFT) ? UI_KEY_FOLD : UI_KEY_FIND; return 0;
+            case SDLK_l: *key = (mod & KMOD_SHIFT) ? UI_KEY_SYMBOLS : UI_KEY_NONE; return 0;
             case SDLK_a: *key = UI_KEY_HOME; return 0;
             case SDLK_t: *key = (mod & KMOD_SHIFT) ? UI_KEY_PREVTAB : UI_KEY_NEXTTAB; return 0;
             case SDLK_c: *key = (mod & KMOD_SHIFT) ? UI_KEY_COLMODE : UI_KEY_NONE; return 0;
@@ -363,7 +380,7 @@ const UI_Backend *ui_gfx_backend(void) {
         gfx_init, gfx_destroy, gfx_draw_line, gfx_draw_caret,
         gfx_present, gfx_get_key, gfx_resize,
         gfx_chrome_rows, gfx_draw_gutter, gfx_draw_tab,
-        gfx_draw_status, gfx_set_theme
+        gfx_draw_status, gfx_draw_symbols, gfx_set_theme}
     };
     return &b;
 }

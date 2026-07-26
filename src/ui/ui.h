@@ -9,6 +9,7 @@
 #define WUBUPAD_UI_H
 
 #include <stddef.h>
+#include "complete.h"   /* DocSymbol for the function-list API */
 
 typedef struct Doc Doc;   /* opaque; editor core */
 typedef struct Docs Docs; /* opaque; multi-doc session */
@@ -42,6 +43,8 @@ typedef struct {
                      const char *name, int active, int dirty);
     /* draw the bottom status line. */
     void (*draw_status)(void *bstate, int row, const char *text);
+    /* draw the function-list panel (right gutter): one row per symbol. */
+    void (*draw_symbols)(void *bstate, int row, const char *name, int line_no);
     /* apply a theme variant (1=dark, 0=light). */
     void (*set_theme)(void *bstate, int dark);
 } UI_Backend;
@@ -62,7 +65,8 @@ enum {
     UI_KEY_MACRO,        /* toggle macro recording */
     UI_KEY_REPLAY,       /* replay last macro */
     UI_KEY_COMPLETE,      /* word completion (Ctrl-Space) */
-    UI_KEY_FOLD          /* fold current code block (Ctrl-Shift-F) */
+    UI_KEY_FOLD,          /* fold current code block (Ctrl-Shift-F) */
+    UI_KEY_SYMBOLS        /* toggle function-list panel (Ctrl-Shift-L) */
 };
 
 /* Create a UI bound to `doc` and backend `be`. cols/rows seed the viewport. */
@@ -139,6 +143,15 @@ void ui_unfold_all(UI *ui);
 /* Fold the code block (brace-matched) starting at the cursor line.
  * Returns 1 if a fold was created, 0 otherwise. */
 int  ui_fold_current_block(UI *ui);
+
+/* --- symbol / function list (Phase D) --- */
+/* Fill `out`/`n` with the document's symbols (caller frees via doc_symbols_free).
+ * Returns 1 on success, 0 if no doc. */
+int  ui_symbols(const UI *ui, DocSymbol **out, size_t *n);
+/* Render the symbol list as text (one "name : L<line>" per row). */
+void ui_function_list_string(const DocSymbol *syms, size_t n, char *buf, size_t bufn);
+int  ui_symbols_visible(const UI *ui);
+void ui_toggle_symbols(UI *ui);
 
 /* Status string buffer builder (cursor Ln/Col, lang, dirty + find count). */
 void ui_status_string(const UI *ui, const char *lang, char *buf, size_t n);
