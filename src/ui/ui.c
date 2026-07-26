@@ -6,6 +6,7 @@
 #include "doc.h"
 #include "lex.h"
 #include "ui_headless.h"
+#include "ui_find.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -24,6 +25,7 @@ struct UI {
     int cols, rows;
     int scroll_row;     /* top visible line */
     int scroll_col;     /* left visible column (horizontal) */
+    UIFind *find;       /* find/replace controller (Phase B) */
 };
 
 UI *ui_create(Doc *doc, const UI_Backend *be, int cols, int rows) {
@@ -34,12 +36,16 @@ UI *ui_create(Doc *doc, const UI_Backend *be, int cols, int rows) {
     ui->be  = be;
     ui->cols = cols > 0 ? cols : 80;
     ui->rows = rows > 0 ? rows : 24;
-    if (be->init(&ui->bstate, ui->cols, ui->rows) != 0) { free(ui); return NULL; }
+    ui->find = ui_find_create();
+    if (be->init(&ui->bstate, ui->cols, ui->rows) != 0) {
+        ui_find_free(ui->find); free(ui); return NULL;
+    }
     return ui;
 }
 
 void ui_free(UI *ui) {
     if (!ui) return;
+    if (ui->find) ui_find_free(ui->find);
     if (ui->be && ui->be->destroy) ui->be->destroy(ui->bstate);
     free(ui);
 }
@@ -234,7 +240,57 @@ int ui_run(UI *ui, const char *lang) {
     return 0;
 }
 
-/* --- headless backend accessors (for tests) ------------------------- */
+/* --- find / replace (Phase B): bind the DONE search engine to the Doc --- */
+long ui_find(UI *ui, const char *pattern, int regex, int icase) {
+    if (!ui) return -1;
+    char *text = doc_text(ui->doc);
+    size_t len = doc_length(ui->doc);
+    long n = ui_find_run(ui->find, text, len, pattern, regex, icase);
+    free(text);
+    if (n > 0) {
+        size_t s, e;
+        if (ui_find_active(ui->find, &s, &e)) {
+            doc_set_selection(ui->doc, s, e);
+            doc_set_cursor(ui->doc, e);
+            ui_scroll_to_cursor(ui);
+        }
+    }
+    return n;
+}
+
+long ui_find_replace_all_in_doc(UI *ui, const char *repl) {
+    if (!ui) return -1;
+    char *text = doc_text(ui->doc);
+    size_t len = doc_length(ui->doc);
+    char *out; size_t nlen;
+    long n = ui_find_replace_all(ui->find, text, len, repl, &out, &nlen);
+    free(text);
+    if (n >= 0 && out) {
+        doc_replace(ui->doc, 0, len, out);
+        free(out);
+    } else free(out);
+    return n;
+}
+
+void ui_find_next_match(UI *ui) {
+    if (!ui) return;
+    if (ui_find_next(ui->find)) {
+        size_t s, e;
+        if (ui_find_active(ui->find, &s, &e)) {
+            doc_set_selection(ui->doc, s, e);
+            doc_set_cursor(ui->doc, e);
+            ui_scroll_to_cursor(ui);
+        }
+    }
+}
+
+long ui_find_matches(const UI *ui) {
+    return ui && ui->find ? ui_find_count(ui->find) : 0;
+}
+int ui_find_error(const UI *ui) {
+    return ui && ui->find ? ui_find_bad_pattern(ui->find) : 0;
+}
+
 /* These live here because UI is a complete type only in this TU. They reach
  * into the headless backend's state, which ui_headless.c owns. We keep the
  * queue/line logic in ui_headless.c as static helpers and expose them via a

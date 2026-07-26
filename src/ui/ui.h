@@ -70,6 +70,18 @@ void ui_redo(UI *ui);
 /* Scroll the viewport to ensure the cursor is visible (call after moves). */
 void ui_scroll_to_cursor(UI *ui);
 
+/* --- find / replace (bind the DONE search engine; Phase B) --- */
+/* Run a find over the doc; moves the selection to the first match. Returns
+ * the match count (0 none, -1 bad regex). */
+long ui_find(UI *ui, const char *pattern, int regex, int icase);
+/* Advance to the next match (wraps). */
+void ui_find_next_match(UI *ui);
+/* Replace every match in the doc with `repl`. Returns count replaced. */
+long ui_find_replace_all_in_doc(UI *ui, const char *repl);
+/* Read-only accessors for the active find state (for status display). */
+long ui_find_matches(const UI *ui);
+int  ui_find_error(const UI *ui);
+
 /* --- render --- */
 /* Redraw the visible viewport. `lang` selects the lexer for highlighting
  * (NULL = plain). Draws cols*rows lines starting at the scroll row. */

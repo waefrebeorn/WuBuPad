@@ -64,7 +64,7 @@ else()
   message(STATUS "WuBuPad: gfx backend DISABLED (SDL2/FreeType2 not found)")
 endif()
 
-add_library(wubupad_ui STATIC ${UI_SOURCES})
+add_library(wubupad_ui STATIC ${UI_SOURCES} src/ui/ui_find.c)
 target_include_directories(wubupad_ui PUBLIC src)
 target_link_libraries(wubupad_ui PUBLIC ${UI_LIBS})
 
@@ -72,6 +72,11 @@ target_link_libraries(wubupad_ui PUBLIC ${UI_LIBS})
 if(SDL2_FOUND AND FREETYPE_FOUND)
   target_link_libraries(wubupad PRIVATE wubupad_agent wubupad_ui SDL2::SDL2 Freetype::Freetype)
 endif()
+
+# Acceptance test for find/replace (Phase B).
+add_executable(test_find tests/test_find.c)
+target_link_libraries(test_find PRIVATE wubupad_ui)
+add_test(NAME find COMMAND test_find)
 
 # Acceptance test for the UI controller (driven on the headless backend).
 add_executable(test_ui tests/test_ui.c)
