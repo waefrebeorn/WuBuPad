@@ -64,7 +64,7 @@ else()
   message(STATUS "WuBuPad: gfx backend DISABLED (SDL2/FreeType2 not found)")
 endif()
 
-add_library(wubupad_ui STATIC ${UI_SOURCES} src/ui/ui_find.c src/ui/ui_theme.c)
+add_library(wubupad_ui STATIC ${UI_SOURCES} src/ui/ui_find.c src/ui/ui_theme.c src/ui/ui_macro.c)
 target_include_directories(wubupad_ui PUBLIC src)
 target_link_libraries(wubupad_ui PUBLIC ${UI_LIBS})
 
@@ -72,6 +72,11 @@ target_link_libraries(wubupad_ui PUBLIC ${UI_LIBS})
 if(SDL2_FOUND AND FREETYPE_FOUND)
   target_link_libraries(wubupad PRIVATE wubupad_agent wubupad_ui SDL2::SDL2 Freetype::Freetype)
 endif()
+
+# Acceptance test for editor features (Phase D).
+add_executable(test_editor tests/test_editor.c)
+target_link_libraries(test_editor PRIVATE wubupad_ui)
+add_test(NAME editor COMMAND test_editor)
 
 # Acceptance test for theme/status/tabs (Phase C).
 add_executable(test_theme tests/test_theme.c)

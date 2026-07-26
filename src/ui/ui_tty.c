@@ -101,6 +101,10 @@ static int tty_get_key(void *st, char *ch, int *key) {
         case 21:  *key = UI_KEY_PGDOWN;break;  /* ctrl-u */
         case 25:  *key = UI_KEY_REDO;  break;  /* ctrl-y */
         case 26:  *key = UI_KEY_UNDO;  break;  /* ctrl-z */
+        case 24:  *key = UI_KEY_COLMODE;break; /* ctrl-x column mode */
+        case 7:   *key = UI_KEY_EOL;    break; /* ctrl-g EOL convert */
+        case 2:   *key = UI_KEY_MACRO;  break; /* ctrl-b macro toggle */
+        case 14:  *key = UI_KEY_REPLAY; break; /* ctrl-n replay macro */
         default:  *key = UI_KEY_NONE;  break;
     }
     return 0;

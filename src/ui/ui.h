@@ -13,6 +13,7 @@
 typedef struct Doc Doc;   /* opaque; editor core */
 typedef struct Docs Docs; /* opaque; multi-doc session */
 typedef struct UI  UI;
+typedef struct UIMacro UIMacro; /* opaque; input macro */
 
 /* A backend draws spans and reports input. Implemented per-platform. */
 typedef struct {
@@ -55,7 +56,11 @@ enum {
     UI_KEY_UNDO, UI_KEY_REDO,
     UI_KEY_FIND,
     UI_KEY_NEXTTAB, UI_KEY_PREVTAB,
-    UI_KEY_THEME
+    UI_KEY_THEME,
+    UI_KEY_COLMODE,      /* toggle column/block selection */
+    UI_KEY_EOL,          /* convert EOL (LF<->CRLF) */
+    UI_KEY_MACRO,        /* toggle macro recording */
+    UI_KEY_REPLAY        /* replay last macro */
 };
 
 /* Create a UI bound to `doc` and backend `be`. cols/rows seed the viewport. */
@@ -110,6 +115,18 @@ void ui_set_docs(UI *ui, Docs *docs);
 void ui_next_tab(UI *ui);
 void ui_prev_tab(UI *ui);
 
+/* --- macro (Phase D) --- */
+/* Attach a macro recorder; UI_KEY_MACRO toggles recording, UI_KEY_REPLAY
+ * replays. May be NULL (no macro support). */
+void ui_set_macro(UI *ui, UIMacro *m);
+void ui_toggle_macro(UI *ui);   /* start/stop recording */
+void ui_replay_macro(UI *ui);   /* replay last recording */
+
+/* --- column / EOL (Phase D) --- */
+int  ui_get_colmode(const UI *ui);
+void ui_toggle_colmode(UI *ui);
+void ui_convert_eol(UI *ui);    /* flip LF <-> CRLF */
+
 /* Status string buffer builder (cursor Ln/Col, lang, dirty + find count). */
 void ui_status_string(const UI *ui, const char *lang, char *buf, size_t n);
 
@@ -123,7 +140,11 @@ void ui_render(UI *ui, const char *lang);
  * `lang` drives syntax highlighting. Returns 0 on clean exit. */
 int ui_run(UI *ui, const char *lang);
 
-/* Advance exactly one input event (read key -> dispatch -> scroll -> render).
+/* Apply one input event (dispatch + scroll, no backend read, no render).
+ * Used by ui_step and by macro replay. Records into the macro if attached. */
+void ui_apply(UI *ui, char ch, int key);
+
+/* Advance one input event: read a key, dispatch it, scroll, render.
  * Returns 0 to continue, -1 if quit was requested. Used by tests and by
  * front-ends that own their own event pump. */
 int ui_step(UI *ui, const char *lang);

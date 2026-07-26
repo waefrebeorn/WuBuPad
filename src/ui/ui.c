@@ -8,6 +8,7 @@
 #include "ui_headless.h"
 #include "ui_find.h"
 #include "ui_theme.h"
+#include "ui_macro.h"
 #include "docs.h"
 #include <stdlib.h>
 #include <string.h>
@@ -28,6 +29,8 @@ struct UI {
     int cols, rows;
     int scroll_row;     /* top visible line */
     int scroll_col;     /* left visible column (horizontal) */
+    int colmode;        /* column/block selection active (mirrors doc) */
+    UIMacro *macro;     /* optional input recorder (NULL = no macro) */
     UIFind *find;       /* find/replace controller (Phase B) */
     UITheme *theme;     /* active theme (Phase C) */
     Docs *docs;         /* multi-doc session (Phase C, NULL = single) */
@@ -243,13 +246,11 @@ void ui_render(UI *ui, const char *lang) {
     if (lx) lex_free(lx);
 }
 
-/* Advance one input event: read a key, dispatch it, scroll, render.
- * Returns 0 if the session should continue, -1 if quit was requested. */
-int ui_step(UI *ui, const char *lang) {
-    if (!ui) return -1;
-    char ch = 0; int key = UI_KEY_NONE;
-    int rc = ui->be->get_key(ui->bstate, &ch, &key);
-    if (rc != 0 || key == UI_KEY_QUIT) return -1;
+/* Apply one input event (dispatch + scroll). Does NOT read from the backend
+ * and does NOT render -- so macro replay can call it directly. Records the
+ * event into the attached macro when recording. */
+void ui_apply(UI *ui, char ch, int key) {
+    if (!ui) return;
     switch (key) {
         case UI_KEY_LEFT:   ui_cursor_left(ui);  break;
         case UI_KEY_RIGHT:  ui_cursor_right(ui); break;
@@ -267,12 +268,28 @@ int ui_step(UI *ui, const char *lang) {
         case UI_KEY_NEXTTAB: ui_next_tab(ui);    break;
         case UI_KEY_PREVTAB: ui_prev_tab(ui);    break;
         case UI_KEY_THEME:   ui_toggle_theme(ui); break;
+        case UI_KEY_COLMODE: ui_toggle_colmode(ui); break;
+        case UI_KEY_EOL:     ui_convert_eol(ui); break;
+        case UI_KEY_MACRO:   ui_toggle_macro(ui); break;
+        case UI_KEY_REPLAY:  ui_replay_macro(ui); break;
         default:
             if (ch == '\n') ui_newline(ui);
             else if (ch) { char buf[2] = {ch,0}; ui_insert_text(ui, buf, 1); }
             break;
     }
     ui_scroll_to_cursor(ui);
+    if (ui->macro && key != UI_KEY_MACRO && key != UI_KEY_REPLAY)
+        ui_macro_add(ui->macro, ch, key);
+}
+
+/* Advance one input event: read a key, dispatch it, scroll, render.
+ * Returns 0 if the session should continue, -1 if quit was requested. */
+int ui_step(UI *ui, const char *lang) {
+    if (!ui) return -1;
+    char ch = 0; int key = UI_KEY_NONE;
+    int rc = ui->be->get_key(ui->bstate, &ch, &key);
+    if (rc != 0 || key == UI_KEY_QUIT) return -1;
+    ui_apply(ui, ch, key);
     ui_render(ui, lang);
     return 0;
 }
@@ -391,6 +408,35 @@ void ui_prev_tab(UI *ui) {
     if (!ui->docs) return;
     size_t n = docs_count(ui->docs), a = docs_active(ui->docs);
     ui_activate_doc(ui, (a + n - 1) % n);
+}
+
+/* --- macro (Phase D) --- */
+void ui_set_macro(UI *ui, UIMacro *m) { if (ui) ui->macro = m; }
+void ui_toggle_macro(UI *ui) {
+    if (!ui || !ui->macro) return;
+    if (ui_macro_recording(ui->macro)) ui_macro_record_stop(ui->macro);
+    else ui_macro_record_start(ui->macro);
+}
+void ui_replay_macro(UI *ui) {
+    if (!ui || !ui->macro) return;
+    if (ui_macro_recording(ui->macro)) return;  /* don't nest */
+    ui_macro_replay(ui, ui->macro);
+    ui_render(ui, NULL);
+}
+
+/* --- column / EOL (Phase D) --- */
+int ui_get_colmode(const UI *ui) {
+    return ui && ui->doc ? doc_get_colmode(ui->doc) : 0;
+}
+void ui_toggle_colmode(UI *ui) {
+    if (!ui || !ui->doc) return;
+    int on = !doc_get_colmode(ui->doc);
+    doc_set_colmode(ui->doc, on);
+    ui->colmode = on;
+}
+void ui_convert_eol(UI *ui) {
+    if (!ui || !ui->doc) return;
+    doc_convert_eol(ui->doc, doc_eol_mode(ui->doc) ? 0 : 1);
 }
 
 /* These live here because UI is a complete type only in this TU. They reach

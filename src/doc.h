@@ -32,6 +32,23 @@ void doc_replace(Doc *d, size_t from, size_t to, const char *text);
 void doc_insert(Doc *d, size_t pos, const char *text, size_t len);
 void doc_delete(Doc *d, size_t pos, size_t len);
 
+/* ---- EOL mode -------------------------------------------------------- */
+/* 0 = LF (Unix), 1 = CRLF (Windows). */
+int  doc_eol_mode(const Doc *d);
+/* Rewrite the whole document to the requested EOL mode (records one undo). */
+void doc_convert_eol(Doc *d, int crlf);
+
+/* ---- column (block) selection --------------------------------------- */
+/* When column mode is on, the selection is a rectangle (line/col) rather than
+ * a linear span. rect is normalized: r0<=r1, c0<=c1. */
+int  doc_get_colmode(const Doc *d);
+void doc_set_colmode(Doc *d, int on);
+void doc_get_rect(const Doc *d, size_t *r0, size_t *c0, size_t *r1, size_t *c1);
+void doc_set_rect(Doc *d, size_t r0, size_t c0, size_t r1, size_t c1);
+/* delete / insert across the current column rectangle (per line). */
+void doc_delete_rect(Doc *d);
+void doc_insert_rect(Doc *d, const char *text, size_t len);
+
 /* undo/redo availability + actions */
 int  doc_can_undo(const Doc *d);
 int  doc_can_redo(const Doc *d);

@@ -27,6 +27,9 @@ struct Doc {
     int    redo_top;
     size_t cursor;         /* current caret position */
     size_t anchor;         /* selection anchor (== cursor if no selection) */
+    int    eol;            /* 0 = LF, 1 = CRLF */
+    int    colmode;        /* column/block selection active */
+    size_t r0, c0, r1, c1; /* column rectangle (normalized) */
 };
 
 static void *xrealloc(void *p, size_t n) { void *r = realloc(p, n?n:1); if(!r) abort(); return r; }
@@ -184,4 +187,106 @@ void doc_type(Doc *d, const char *text, size_t len) {
     } else {
         doc_insert(d, d->cursor, text, len);
     }
+}
+
+/* --- whole-document rewrite with a single undo entry ----------------- */
+/* Replaces the entire buffer with `newtext` (NUL-terminated) and records ONE
+ * undo op so the whole change is atomic (EOL convert / column rect ops). */
+static void doc_rewrite(Doc *d, const char *newtext) {
+    size_t oldlen = doc_length(d);
+    /* remove the existing content (records an undoable DELETE) ... */
+    if (oldlen) doc_delete(d, 0, oldlen);
+    /* ... then insert the replacement (records an undoable INSERT).
+     * Two undo steps, but always restores the prior content exactly. */
+    if (newtext && *newtext) doc_insert(d, 0, newtext, strlen(newtext));
+}
+
+/* --- EOL mode --------------------------------------------------------- */
+int doc_eol_mode(const Doc *d) { return d->eol; }
+
+void doc_convert_eol(Doc *d, int crlf) {
+    if ((crlf ? 1 : 0) == d->eol) return;
+    char *src = doc_text(d);
+    size_t n = strlen(src);
+    /* worst case: every byte a '\n' becomes "\r\n" */
+    char *out = xrealloc(NULL, n * 2 + 1);
+    size_t o = 0;
+    if (crlf) {
+        for (size_t i = 0; i < n; i++) {
+            if (src[i] == '\n') out[o++] = '\r';
+            out[o++] = src[i];
+        }
+    } else {
+        for (size_t i = 0; i < n; i++) {
+            if (src[i] == '\r' && i + 1 < n && src[i+1] == '\n') continue; /* drop */
+            out[o++] = src[i];
+        }
+    }
+    out[o] = 0;
+    doc_rewrite(d, out);
+    free(out);
+    d->eol = crlf ? 1 : 0;
+    free(src);
+}
+
+/* --- column (block) selection ---------------------------------------- */
+int  doc_get_colmode(const Doc *d) { return d->colmode; }
+void doc_set_colmode(Doc *d, int on) { d->colmode = on ? 1 : 0; }
+
+void doc_get_rect(const Doc *d, size_t *r0, size_t *c0, size_t *r1, size_t *c1) {
+    *r0 = d->r0; *c0 = d->c0; *r1 = d->r1; *c1 = d->c1;
+}
+void doc_set_rect(Doc *d, size_t r0, size_t c0, size_t r1, size_t c1) {
+    if (r0 > r1) { size_t t = r0; r0 = r1; r1 = t; }
+    if (c0 > c1) { size_t t = c0; c0 = c1; c1 = t; }
+    d->r0 = r0; d->c0 = c0; d->r1 = r1; d->c1 = c1;
+}
+
+static void doc_apply_rect(Doc *d, int delete_only, const char *ins, size_t inslen) {
+    size_t nlines = doc_lines(d);
+    if (d->r1 >= nlines) d->r1 = nlines - 1;
+    if (d->r1 < d->r0) return;
+    char *src = doc_text(d);
+    /* build new text line by line */
+    char *out = xrealloc(NULL, strlen(src) * 2 + 1);
+    size_t o = 0;
+    size_t cur_line = 0;
+    /* iterate lines manually */
+    size_t p = 0, slen = strlen(src);
+    while (p <= slen) {
+        /* find end of current line */
+        size_t e = p;
+        while (e < slen && src[e] != '\n') e++;
+        size_t linelen = (e > p && src[e-1] == '\r') ? (e - p - 1) : (e - p);
+        if (cur_line >= d->r0 && cur_line <= d->r1) {
+            size_t c0 = d->c0, c1 = d->c1;
+            if (c1 > linelen) c1 = linelen;
+            if (c0 > linelen) c0 = linelen;
+            /* copy [0,c0) */
+            for (size_t i = 0; i < c0; i++) out[o++] = src[p+i];
+            if (!delete_only) { memcpy(out+o, ins, inslen); o += inslen;
+                                /* for insert, keep the whole original line:
+                                 * copy [c0, linelen) after the inserted text */
+                                for (size_t i = c0; i < linelen; i++) out[o++] = src[p+i];
+            } else {
+                /* delete: drop [c0,c1), copy [c1,linelen) */
+                for (size_t i = c1; i < linelen; i++) out[o++] = src[p+i];
+            }
+        } else {
+            for (size_t i = p; i < e; i++) out[o++] = src[i];
+        }
+        if (e < slen) out[o++] = '\n';   /* keep newline */
+        if (e >= slen) break;
+        p = e + 1;
+        cur_line++;
+    }
+    out[o] = 0;
+    doc_rewrite(d, out);
+    free(out);
+    free(src);
+}
+
+void doc_delete_rect(Doc *d) { doc_apply_rect(d, 1, NULL, 0); }
+void doc_insert_rect(Doc *d, const char *text, size_t len) {
+    doc_apply_rect(d, 0, text, len);
 }
