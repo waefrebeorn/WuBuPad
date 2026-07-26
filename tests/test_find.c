@@ -5,9 +5,9 @@
 #include "ui/ui_headless.h"
 #include "ui/ui_find.h"
 #include "doc.h"
-
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 static int failures = 0;
 #define CHECK(c, m) do { if(!(c)) { printf("FAIL: %s\n", m); failures++; } } while(0)

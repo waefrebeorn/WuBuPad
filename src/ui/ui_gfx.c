@@ -9,6 +9,7 @@
  * Headless/CI: if SDL_VIDEODRIVER=dummy, init still succeeds (no real window)
  * so tests can exercise draw_line/present without a display. */
 #include "ui.h"
+#include "ui_theme.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -17,24 +18,11 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
-/* ---- semantic color tokens (Light + Dark) ---- */
+/* Token kinds used by draw_line's `kind` arg (mirrors LexTok from lex.h). */
 typedef enum {
-    TOK_SURFACE, TOK_SURFACE_ALT, TOK_TEXT, TOK_ACCENT,
-    TOK_SELECTION, TOK_LINE_NO, TOK_CARET,
-    TOK_KW, TOK_TYPE, TOK_STR, TOK_NUM, TOK_COMMENT, TOK_PREPROC
-} Token;
-
-typedef struct { Uint8 r,g,b; } RGB;
-static const RGB LIGHT[] = {
-    {255,255,255}, {245,245,245}, {20,20,20},  {0,90,200},
-    {180,210,255}, {140,140,140}, {0,0,0},
-    {120,30,160},  {0,110,80},     {120,20,20}, {10,90,160}, {110,110,110}, {150,90,0}
-};
-static const RGB DARK[] = {
-    {30,30,34}, {38,38,44}, {220,220,220}, {90,150,255},
-    {60,90,140}, {110,110,120}, {255,255,255},
-    {200,130,230}, {110,200,160}, {230,150,150}, {120,180,240}, {130,130,140}, {200,150,90}
-};
+    TKN_PLAIN = 0, TKN_KW, TKN_TYPE, TKN_STR, TKN_CHAR,
+    TKN_NUM, TKN_COMMENT, TKN_PREPROC
+} GfxTok;
 
 #define FONT_PT 18
 
@@ -54,7 +42,7 @@ typedef struct {
     FT_Face face;
     Glyph *glyphs;
     int nglyphs, capglyph;
-    int dark;              /* theme */
+    UITheme *theme;        /* semantic palette (persisted) */
     int caret_on;
     int init_ok;
 } GFX;
@@ -108,16 +96,18 @@ static int gfx_cache_glyph(GFX *g, Uint32 cp) {
     return g->nglyphs++;
 }
 
-static const RGB *gfx_palette(GFX *g) { return g->dark ? DARK : LIGHT; }
+static UIRGB gfx_color(GFX *g, UIToken tok) {
+    return ui_theme_color(g->theme, tok);
+}
 
-static void gfx_draw_glyph(GFX *g, int cp, int px, int py, Token tok) {
+static void gfx_draw_glyph(GFX *g, int cp, int px, int py, UIToken tok) {
     int gi = gfx_glyph_index(g, (Uint32)cp);
     if (gi < 0) gi = gfx_cache_glyph(g, (Uint32)(cp ? cp : ' '));
     if (gi < 0) return;
     Glyph *gl = &g->glyphs[gi];
     if (!gl->tex || gl->w <= 0 || gl->h <= 0) return;
-    const RGB *pal = gfx_palette(g);
-    SDL_SetTextureColorMod(gl->tex, pal[tok].r, pal[tok].g, pal[tok].b);
+    UIRGB c = gfx_color(g, tok);
+    SDL_SetTextureColorMod(gl->tex, c.r, c.g, c.b);
     SDL_Rect dst = { px + gl->bx, py - gl->by + g->line_h, gl->w, gl->h };
     SDL_RenderCopy(g->ren, gl->tex, NULL, &dst);
 }
@@ -128,7 +118,8 @@ static int gfx_init(void **st, int cols, int rows) {
     if (!g) return -1;
     g->cols = cols > 0 ? cols : 100;
     g->rows = rows > 0 ? rows : 40;
-    g->dark = 1;  /* default dark theme */
+    g->theme = ui_theme_create();
+    if (g->theme) ui_theme_load(g->theme);
     g->caret_on = 1;
 
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
@@ -191,6 +182,7 @@ static void gfx_destroy(void *st) {
             if (g->glyphs[i].tex) SDL_DestroyTexture(g->glyphs[i].tex);
         free(g->glyphs);
     }
+    if (g->theme) ui_theme_free(g->theme);
     if (g->face) FT_Done_Face(g->face);
     if (g->ft) FT_Done_FreeType(g->ft);
     if (g->ren) SDL_DestroyRenderer(g->ren);
@@ -199,30 +191,34 @@ static void gfx_destroy(void *st) {
     free(g);
 }
 
+static void gfx_fill(GFX *g, int x, int y, int w, int h, UIToken tok) {
+    UIRGB c = gfx_color(g, tok);
+    SDL_SetRenderDrawColor(g->ren, c.r, c.g, c.b, 255);
+    SDL_Rect r = { x, y, w, h };
+    SDL_RenderFillRect(g->ren, &r);
+}
+
+static int gfx_kind_token(int kind) {
+    switch (kind) {
+        case 1: return TOK_KW;
+        case 2: return TOK_TYPE;
+        case 3: return TOK_STR;
+        case 4: return TOK_STR;   /* char */
+        case 5: return TOK_NUM;
+        case 6: return TOK_COMMENT;
+        case 7: return TOK_PREPROC;
+        default: return TOK_TEXT;
+    }
+}
+
 static void gfx_draw_line(void *st, int row, const char *text, int len, int kind) {
     GFX *g = st;
     if (!g || !g->init_ok || row < 0 || row >= g->rows) return;
-    const RGB *pal = gfx_palette(g);
     int py = row * g->line_h;
-    /* background */
-    SDL_Rect bg = { 0, py, g->cols * g->char_w, g->line_h };
-    SDL_SetRenderDrawColor(g->ren, pal[TOK_SURFACE].r, pal[TOK_SURFACE].g,
-                           pal[TOK_SURFACE].b, 255);
-    SDL_RenderFillRect(g->ren, &bg);
-
-    Token tok = TOK_TEXT;
-    switch (kind) {
-        case 1: tok = TOK_KW; break;
-        case 2: tok = TOK_TYPE; break;
-        case 3: tok = TOK_STR; break;
-        case 4: tok = TOK_STR; break; /* char */
-        case 5: tok = TOK_NUM; break;
-        case 6: tok = TOK_COMMENT; break;
-        case 7: tok = TOK_PREPROC; break;
-        default: tok = TOK_TEXT; break;
-    }
+    gfx_fill(g, 0, py, g->cols * g->char_w, g->line_h, TOK_SURFACE);
+    UIToken tok = (UIToken)gfx_kind_token(kind);
     int n = len < 0 ? (int)strlen(text ? text : "") : len;
-    int px = 1;
+    int px = g->char_w * 5 + 2;   /* leave room for the gutter */
     for (int i = 0; i < n; i++) {
         unsigned char c = (unsigned char)text[i];
         gfx_draw_glyph(g, c, px, py, tok);
@@ -233,12 +229,60 @@ static void gfx_draw_line(void *st, int row, const char *text, int len, int kind
 static void gfx_draw_caret(void *st, int row, int col) {
     GFX *g = st;
     if (!g || !g->init_ok) return;
-    const RGB *pal = gfx_palette(g);
-    int x = col * g->char_w, y = row * g->line_h;
-    SDL_Rect r = { x, y, 2, g->line_h };
-    SDL_SetRenderDrawColor(g->ren, pal[TOK_CARET].r, pal[TOK_CARET].g,
-                           pal[TOK_CARET].b, 255);
-    SDL_RenderFillRect(g->ren, &r);
+    int x = g->char_w * 5 + 2 + col * g->char_w, y = row * g->line_h;
+    gfx_fill(g, x, y, 2, g->line_h, TOK_CARET);
+}
+
+/* --- chrome (Phase C) --- */
+static int gfx_chrome_rows(void *st) {
+    (void)st;
+    return 2;   /* 1 tab strip + 1 status bar */
+}
+
+static void gfx_draw_gutter(void *st, int row, int line_no) {
+    GFX *g = st;
+    if (!g || !g->init_ok || row < 0 || row >= g->rows) return;
+    if (line_no <= 0) return;   /* past end of buffer */
+    int py = row * g->line_h;
+    gfx_fill(g, 0, py, g->char_w * 5, g->line_h, TOK_SURFACE_ALT);
+    char buf[16];
+    int n = snprintf(buf, sizeof buf, "%d", line_no);
+    int px = 2;
+    for (int i = 0; i < n && i < 5; i++)
+        gfx_draw_glyph(g, (unsigned char)buf[i], px + i * g->char_w, py, TOK_LINE_NO);
+}
+
+static void gfx_draw_tab(void *st, int tab_row, int index,
+                         const char *name, int active, int dirty) {
+    GFX *g = st;
+    if (!g || !g->init_ok || tab_row != 0) return;
+    int x = index * g->char_w * 20;       /* each tab ~20 chars wide */
+    int w = g->char_w * 20;
+    gfx_fill(g, x, 0, w, g->line_h, active ? TOK_ACCENT : TOK_SURFACE_ALT);
+    char buf[20];
+    int n = snprintf(buf, sizeof buf, active ? "[%s%s]" : " %s%s ",
+                     name ? name : "", dirty ? "*" : "");
+    int px = x + 4;
+    for (int i = 0; i < n && px < x + w - 4; i++)
+        gfx_draw_glyph(g, (unsigned char)buf[i], px + i * g->char_w, 0,
+                       active ? TOK_TEXT : TOK_LINE_NO);
+}
+
+static void gfx_draw_status(void *st, int row, const char *text) {
+    GFX *g = st;
+    if (!g || !g->init_ok || row != g->rows - 1) return;
+    int py = row * g->line_h;
+    gfx_fill(g, 0, py, g->cols * g->char_w, g->line_h, TOK_SURFACE_ALT);
+    int n = (int)strlen(text ? text : "");
+    int px = 4;
+    for (int i = 0; i < n; i++)
+        gfx_draw_glyph(g, (unsigned char)text[i], px + i * g->char_w, py, TOK_TEXT);
+}
+
+static void gfx_set_theme(void *st, int dark) {
+    GFX *g = st;
+    if (!g || !g->theme) return;
+    ui_theme_set_dark(g->theme, dark);
 }
 
 static void gfx_present(void *st) {
@@ -271,6 +315,7 @@ static int gfx_get_key(void *st, char *ch, int *key) {
             case SDLK_f: *key = UI_KEY_FIND; return 0;
             case SDLK_a: *key = UI_KEY_HOME; return 0;
             case SDLK_e: *key = UI_KEY_END; return 0;
+            case SDLK_t: *key = (mod & KMOD_SHIFT) ? UI_KEY_PREVTAB : UI_KEY_NEXTTAB; return 0;
             case SDLK_LEFT: case SDLK_b: *key = UI_KEY_LEFT; return 0;
             case SDLK_RIGHT: *key = UI_KEY_RIGHT; return 0;
         }
@@ -288,6 +333,7 @@ static int gfx_get_key(void *st, char *ch, int *key) {
         case SDLK_DELETE:    *key = UI_KEY_DEL; break;
         case SDLK_RETURN: case SDLK_KP_ENTER: *key = UI_KEY_ENTER; break;
         case SDLK_ESCAPE: *key = UI_KEY_QUIT; return -1;
+        case SDLK_F5: *key = UI_KEY_THEME; break;
         default:
             if (k >= 32 && k < 127) { *ch = (char)k; *key = UI_KEY_NONE; }
             else { *key = UI_KEY_NONE; }
@@ -309,7 +355,9 @@ static void gfx_resize(void *st, int *cols, int *rows) {
 const UI_Backend *ui_gfx_backend(void) {
     static const UI_Backend b = {
         gfx_init, gfx_destroy, gfx_draw_line, gfx_draw_caret,
-        gfx_present, gfx_get_key, gfx_resize
+        gfx_present, gfx_get_key, gfx_resize,
+        gfx_chrome_rows, gfx_draw_gutter, gfx_draw_tab,
+        gfx_draw_status, gfx_set_theme
     };
     return &b;
 }

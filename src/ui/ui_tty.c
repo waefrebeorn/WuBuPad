@@ -117,8 +117,11 @@ static void tty_resize(void *st, int *cols, int *rows) {
 
 const UI_Backend *ui_tty_backend(void) {
     static const UI_Backend b = {
-        tty_init, tty_destroy, tty_draw_line, tty_draw_caret, tty_present,
-        tty_get_key, tty_resize
+        .init = tty_init, .destroy = tty_destroy,
+        .draw_line = tty_draw_line, .draw_caret = tty_draw_caret,
+        .present = tty_present, .get_key = tty_get_key, .resize = tty_resize,
+        .chrome_rows = NULL, .draw_gutter = NULL, .draw_tab = NULL,
+        .draw_status = NULL, .set_theme = NULL
     };
     return &b;
 }

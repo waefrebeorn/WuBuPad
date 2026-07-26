@@ -11,6 +11,7 @@
 #include <stddef.h>
 
 typedef struct Doc Doc;   /* opaque; editor core */
+typedef struct Docs Docs; /* opaque; multi-doc session */
 typedef struct UI  UI;
 
 /* A backend draws spans and reports input. Implemented per-platform. */
@@ -30,6 +31,18 @@ typedef struct {
     int  (*get_key)(void *bstate, char *ch, int *key);
     /* resize notification; cols/rows updated before next draw. */
     void (*resize)(void *bstate, int *cols, int *rows);
+    /* --- optional chrome (Phase C); NULL = backend doesn't draw it --- */
+    /* rows reserved above+below the text viewport (tab strip + status). */
+    int  (*chrome_rows)(void *bstate);
+    /* draw a line-number gutter cell for view row `row` (1-based line_no). */
+    void (*draw_gutter)(void *bstate, int row, int line_no);
+    /* draw the top tab strip: one cell per open doc; active/dirty flagged. */
+    void (*draw_tab)(void *bstate, int tab_row, int index,
+                     const char *name, int active, int dirty);
+    /* draw the bottom status line. */
+    void (*draw_status)(void *bstate, int row, const char *text);
+    /* apply a theme variant (1=dark, 0=light). */
+    void (*set_theme)(void *bstate, int dark);
 } UI_Backend;
 
 /* Symbolic keys (when *key is set, *ch may still carry printable bytes). */
@@ -40,7 +53,9 @@ enum {
     UI_KEY_HOME, UI_KEY_END, UI_KEY_PGUP, UI_KEY_PGDOWN,
     UI_KEY_BACKSPACE, UI_KEY_ENTER, UI_KEY_DEL,
     UI_KEY_UNDO, UI_KEY_REDO,
-    UI_KEY_FIND
+    UI_KEY_FIND,
+    UI_KEY_NEXTTAB, UI_KEY_PREVTAB,
+    UI_KEY_THEME
 };
 
 /* Create a UI bound to `doc` and backend `be`. cols/rows seed the viewport. */
@@ -81,6 +96,22 @@ long ui_find_replace_all_in_doc(UI *ui, const char *repl);
 /* Read-only accessors for the active find state (for status display). */
 long ui_find_matches(const UI *ui);
 int  ui_find_error(const UI *ui);
+
+/* --- theme (Phase C) --- */
+void ui_set_theme(UI *ui, int dark);    /* 1=dark, 0=light */
+void ui_toggle_theme(UI *ui);           /* flip + persist */
+int  ui_theme_dark(const UI *ui);       /* 1=dark, 0=light */
+
+/* --- multi-doc session (Phase C) --- */
+/* Attach a Docs session so the UI shows a tab strip + switches the active
+ * document on tab activation. Pass NULL to detach (single-doc mode). */
+void ui_set_docs(UI *ui, Docs *docs);
+/* switch active document (Ctrl-T / Ctrl-Shift-T). */
+void ui_next_tab(UI *ui);
+void ui_prev_tab(UI *ui);
+
+/* Status string buffer builder (cursor Ln/Col, lang, dirty + find count). */
+void ui_status_string(const UI *ui, const char *lang, char *buf, size_t n);
 
 /* --- render --- */
 /* Redraw the visible viewport. `lang` selects the lexer for highlighting

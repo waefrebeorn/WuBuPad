@@ -43,7 +43,7 @@ int ui_find_prev(UIFind *f);
 int ui_find_replace(const UIFind *f, const char *text, size_t len,
                     const char *repl, char **out, size_t *newlen);
 
-/* Replace ALL matches. Returns count replaced; *out/*newlen as above. */
+/* Replace ALL matches. Returns count replaced; out/newlen as above. */
 long ui_find_replace_all(const UIFind *f, const char *text, size_t len,
                          const char *repl, char **out, size_t *newlen);
 

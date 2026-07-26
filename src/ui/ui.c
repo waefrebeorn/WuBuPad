@@ -7,8 +7,11 @@
 #include "lex.h"
 #include "ui_headless.h"
 #include "ui_find.h"
+#include "ui_theme.h"
+#include "docs.h"
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 /* declared in ui_headless.c */
 const UI_Backend *ui_headless_backend(void);
@@ -26,6 +29,8 @@ struct UI {
     int scroll_row;     /* top visible line */
     int scroll_col;     /* left visible column (horizontal) */
     UIFind *find;       /* find/replace controller (Phase B) */
+    UITheme *theme;     /* active theme (Phase C) */
+    Docs *docs;         /* multi-doc session (Phase C, NULL = single) */
 };
 
 UI *ui_create(Doc *doc, const UI_Backend *be, int cols, int rows) {
@@ -37,8 +42,10 @@ UI *ui_create(Doc *doc, const UI_Backend *be, int cols, int rows) {
     ui->cols = cols > 0 ? cols : 80;
     ui->rows = rows > 0 ? rows : 24;
     ui->find = ui_find_create();
+    ui->theme = ui_theme_create();
+    if (ui->theme) ui_theme_load(ui->theme);
     if (be->init(&ui->bstate, ui->cols, ui->rows) != 0) {
-        ui_find_free(ui->find); free(ui); return NULL;
+        ui_find_free(ui->find); ui_theme_free(ui->theme); free(ui); return NULL;
     }
     return ui;
 }
@@ -46,6 +53,7 @@ UI *ui_create(Doc *doc, const UI_Backend *be, int cols, int rows) {
 void ui_free(UI *ui) {
     if (!ui) return;
     if (ui->find) ui_find_free(ui->find);
+    if (ui->theme) ui_theme_free(ui->theme);
     if (ui->be && ui->be->destroy) ui->be->destroy(ui->bstate);
     free(ui);
 }
@@ -165,14 +173,37 @@ void ui_render(UI *ui, const char *lang) {
     Lex *lx = lang ? lex_create(lang) : NULL;
     size_t nlines = doc_lines(ui->doc);
     size_t total = doc_length(ui->doc);
-    (void)total;
 
-    for (int r = 0; r < ui->rows; r++) {
+    int chrome = ui->be->chrome_rows ? ui->be->chrome_rows(ui->bstate) : 0;
+    int tab_rows  = (chrome >= 2 && ui->be->draw_tab) ? 1 : 0;
+    int status_row = (chrome >= 1 && ui->be->draw_status) ? ui->rows - 1 : -1;
+    int text_top = tab_rows;
+    int text_rows = ui->rows - tab_rows - (status_row >= 0 ? 1 : 0);
+
+    /* tab strip */
+    if (ui->be->draw_tab && ui->docs) {
+        size_t n = docs_count(ui->docs), act = docs_active(ui->docs);
+        for (size_t i = 0; i < n; i++) {
+            const char *p = docs_path(ui->docs, i);
+            const char *name = p ? p : "<untitled>";
+            /* basename */
+            const char *bn = name;
+            for (const char *s = name; *s; s++) if (*s == '/') bn = s + 1;
+            ui->be->draw_tab(ui->bstate, 0, (int)i, bn,
+                            (int)i == (int)act, docs_dirty(ui->docs, i));
+        }
+    }
+
+    for (int r = 0; r < text_rows; r++) {
+        int view_row = text_top + r;
         size_t ln = (size_t)(ui->scroll_row + r);
-        if (ln >= nlines) { ui->be->draw_line(ui->bstate, r, "", 0, TK_NONE); continue; }
+        if (ln >= nlines) {
+            ui->be->draw_line(ui->bstate, view_row, "", 0, TK_NONE);
+            if (ui->be->draw_gutter) ui->be->draw_gutter(ui->bstate, view_row, 0);
+            continue;
+        }
         size_t start = doc_line_byte_start(ui->doc, ln);
         size_t next  = (ln + 1 < nlines) ? doc_line_byte_start(ui->doc, ln + 1) : total;
-        /* strip trailing newline from the line */
         size_t len = next - start;
         while (len > 0 && (text[start + len - 1] == '\n' || text[start + len - 1] == '\r'))
             len--;
@@ -188,15 +219,25 @@ void ui_render(UI *ui, const char *lang) {
                 if (spans[s].start <= cur && cur < spans[s].end) { kind = (int)spans[s].kind; break; }
             }
         }
-        ui->be->draw_line(ui->bstate, r, lp, llen, kind);
+        ui->be->draw_line(ui->bstate, view_row, lp, llen, kind);
+        if (ui->be->draw_gutter) ui->be->draw_gutter(ui->bstate, view_row, (int)(ln + 1));
     }
-    /* caret */
+
+    /* caret (only if within text viewport) */
     size_t line, col, pos = doc_cursor(ui->doc);
     doc_line_col(ui->doc, pos, &line, &col);
-    int crow = (int)line - ui->scroll_row;
+    int crow = (int)line - ui->scroll_row + text_top;
     int ccol = (int)col - ui->scroll_col;
-    if (crow >= 0 && crow < ui->rows && ccol >= 0 && ccol < ui->cols)
+    if (crow >= text_top && crow < text_top + text_rows && ccol >= 0 && ccol < ui->cols)
         ui->be->draw_caret(ui->bstate, crow, ccol);
+
+    /* status bar */
+    if (status_row >= 0 && ui->be->draw_status) {
+        char st[256];
+        ui_status_string(ui, lang, st, sizeof st);
+        ui->be->draw_status(ui->bstate, status_row, st);
+    }
+
     ui->be->present(ui->bstate);
     free(text);
     if (lx) lex_free(lx);
@@ -223,6 +264,9 @@ int ui_step(UI *ui, const char *lang) {
         case UI_KEY_ENTER:  ui_newline(ui);      break;
         case UI_KEY_UNDO:   ui_undo(ui);         break;
         case UI_KEY_REDO:   ui_redo(ui);         break;
+        case UI_KEY_NEXTTAB: ui_next_tab(ui);    break;
+        case UI_KEY_PREVTAB: ui_prev_tab(ui);    break;
+        case UI_KEY_THEME:   ui_toggle_theme(ui); break;
         default:
             if (ch == '\n') ui_newline(ui);
             else if (ch) { char buf[2] = {ch,0}; ui_insert_text(ui, buf, 1); }
@@ -289,6 +333,64 @@ long ui_find_matches(const UI *ui) {
 }
 int ui_find_error(const UI *ui) {
     return ui && ui->find ? ui_find_bad_pattern(ui->find) : 0;
+}
+
+/* --- theme (Phase C) --- */
+void ui_set_theme(UI *ui, int dark) {
+    if (!ui || !ui->theme) return;
+    ui_theme_set_dark(ui->theme, dark);
+    ui_theme_save(ui->theme);
+    if (ui->be && ui->be->set_theme) ui->be->set_theme(ui->bstate, dark);
+}
+void ui_toggle_theme(UI *ui) {
+    if (!ui || !ui->theme) return;
+    ui_set_theme(ui, ui_theme_is_dark(ui->theme) ? 0 : 1);
+}
+int ui_theme_dark(const UI *ui) {
+    return ui && ui->theme ? ui_theme_is_dark(ui->theme) : 1;
+}
+
+/* --- multi-doc session (Phase C) --- */
+void ui_set_docs(UI *ui, Docs *docs) {
+    if (!ui) return;
+    ui->docs = docs;
+    if (docs) {
+        Doc *d = docs_doc(docs, docs_active(docs));
+        if (d) ui->doc = d;
+    }
+}
+
+void ui_status_string(const UI *ui, const char *lang, char *buf, size_t n) {
+    if (!ui) { if (n) buf[0] = 0; return; }
+    size_t line, col, pos = doc_cursor(ui->doc);
+    doc_line_col(ui->doc, pos, &line, &col);
+    long fm = ui_find_matches(ui);
+    int dirty = ui->docs ? docs_dirty(ui->docs, docs_active(ui->docs)) : 0;
+    snprintf(buf, n, " Ln %zu  Col %zu  %s  %s%s  [%ld match%s]",
+             line + 1, col + 1,
+             lang ? lang : "txt",
+             ui_theme_dark(ui) ? "dark" : "light",
+             dirty ? " *" : "",
+             fm, fm == 1 ? "" : "es");
+}
+
+/* switch active document; updates ui->doc + resets scroll. */
+static void ui_activate_doc(UI *ui, size_t i) {
+    if (!ui->docs) return;
+    if (i >= docs_count(ui->docs)) return;
+    docs_set_active(ui->docs, i);
+    Doc *d = docs_doc(ui->docs, i);
+    if (d) { ui->doc = d; ui->scroll_row = 0; ui->scroll_col = 0; }
+}
+void ui_next_tab(UI *ui) {
+    if (!ui->docs) return;
+    size_t n = docs_count(ui->docs), a = docs_active(ui->docs);
+    ui_activate_doc(ui, (a + 1) % n);
+}
+void ui_prev_tab(UI *ui) {
+    if (!ui->docs) return;
+    size_t n = docs_count(ui->docs), a = docs_active(ui->docs);
+    ui_activate_doc(ui, (a + n - 1) % n);
 }
 
 /* These live here because UI is a complete type only in this TU. They reach

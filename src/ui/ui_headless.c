@@ -20,15 +20,6 @@ typedef struct {
     int    quit;
 } HL;
 
-/* push a scripted key (ch bytes, key code). */
-static void hl_push_key(HL *h, const char *ch, int key) {
-    size_t n = h->klen + 1;
-    h->keys = realloc(h->keys, n * 2);
-    h->keys[h->klen*2]   = ch ? ch[0] : 0;
-    h->keys[h->klen*2+1] = (char)key;
-    h->klen = n;
-}
-
 static int hl_init(void **st, int cols, int rows) {
     HL *h = calloc(1, sizeof *h);
     if (!h) return -1;
@@ -93,8 +84,13 @@ static void hl_resize(void *st, int *cols, int *rows) {
 
 const UI_Backend *ui_headless_backend(void) {
     static const UI_Backend b = {
-        hl_init, hl_destroy, hl_draw_line, hl_draw_caret, hl_present,
-        hl_get_key, hl_resize
+        .init = hl_init, .destroy = hl_destroy,
+        .draw_line = hl_draw_line, .draw_caret = hl_draw_caret,
+        .present = hl_present, .get_key = hl_get_key, .resize = hl_resize,
+        /* chrome_rows / draw_gutter / draw_tab / draw_status / set_theme
+         * intentionally left NULL (headless has no chrome). */
+        .chrome_rows = NULL, .draw_gutter = NULL, .draw_tab = NULL,
+        .draw_status = NULL, .set_theme = NULL
     };
     return &b;
 }
