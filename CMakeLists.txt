@@ -37,14 +37,28 @@ add_library(wubupad_agent STATIC src/agent.c)
 target_link_libraries(wubupad_agent PUBLIC wubupad_core)
 target_include_directories(wubupad_agent PUBLIC src)
 
-# wubuOS-facing CLI: NDJSON in -> NDJSON out (document ingestion engine).
+# wubuOS-facing CLI: NDJSON in -> NDJSON out (document ingestion engine),
+# plus an interactive TUI mode (--edit) backed by the UI layer.
 add_executable(wubupad apps/wubupad/main.c)
-target_link_libraries(wubupad PRIVATE wubupad_agent)
+target_link_libraries(wubupad PRIVATE wubupad_agent wubupad_ui)
 
 # Acceptance test for the core.
 add_executable(test_core tests/test_core.c)
 target_link_libraries(test_core PRIVATE wubupad_core)
 add_test(NAME core COMMAND test_core)
+
+# UI abstraction layer (opaque view/renderer over the core).
+add_library(wubupad_ui STATIC
+  src/ui/ui.c
+  src/ui/ui_headless.c
+  src/ui/ui_tty.c)
+target_include_directories(wubupad_ui PUBLIC src)
+target_link_libraries(wubupad_ui PUBLIC wubupad_core)
+
+# Acceptance test for the UI controller (driven on the headless backend).
+add_executable(test_ui tests/test_ui.c)
+target_link_libraries(test_ui PRIVATE wubupad_ui)
+add_test(NAME ui COMMAND test_ui)
 
 # Acceptance test for the agent protocol.
 add_executable(test_agent tests/test_agent.c)

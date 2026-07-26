@@ -14,7 +14,7 @@ TUI/GUI plugs in later on top of the same verified headless core.
   (0 leaks, 0 UB, 0 warnings) before any change ships.
 
 ## Architecture
-```
+```c
 src/
   buffer.h / buffer.c   -- piece-table text storage (Scintilla-style)
   lex.h    / lex.c      -- syntax token model + C / JSON lexers
@@ -25,11 +25,15 @@ src/
   docs.h   / docs.c     -- multi-document session (editor tabs model)
   json.h   / json.c     -- tiny self-contained JSON parse/emit (reusable)
   agent.h  / agent.c    -- wubuOS-facing protocol dispatcher (the AGI GUI)
+  ui.h     / ui.c       -- opaque UI controller: viewport + command->Doc mapping
+  ui_headless.h/.c      -- null/recording backend (tests, CI)
+  ui_tty.h/.c           -- curses-free ANSI terminal editor backend
 apps/
-  wubupad/main.c        -- NDJSON stdin -> NDJSON stdout CLI
+  wubupad/main.c        -- NDJSON stdin -> NDJSON stdout CLI + interactive --edit TUI
 tests/
   test_core.c           -- buffer/doc/lex/search/encode/diff/docs tests
   test_agent.c          -- AGI protocol acceptance tests
+  test_ui.c             -- UI controller driven on the headless backend
 ```
 The core is **headless** (no platform headers) so it is unit-testable and
 reusable by any front-end — machine or human.
@@ -59,9 +63,15 @@ command — byte-exact and sanitizer-clean. Full command set in `AGI_PROTOCOL.md
   verified (0 leaks/UB/warnings).
 - **AGI protocol** (`agent.c` + `wubupad` CLI): built and tested — the
   ingestion/regurgitation engine for wubuOS is live.
-- **Human UI** (tabs, folding, completion, search box, encoding menu, compare
-  view, plugins): unstarted — see `GAPS_NOTEPAD.md`, `GAPS_OFFICE.md`,
-  `GAPS_GUI.md`.
+- **UI abstraction layer** (`src/ui/`): built. Opaque `UI` owns viewport state
+  and translates commands into Doc mutations; backends implement a small
+  vtable (`ui_headless.c` null/recording for tests, `ui_tty.c` a curses-free
+  ANSI terminal editor). `wubupad --edit <file>` launches the interactive
+  TUI; the same core backs the agent. `test_ui` drives the whole stack under
+  ASan+UBSan (0 leaks/UB).
+- **Human GUI** (tabs, folding, completion, search box, encoding menu, compare
+  view, plugins, SDL2/FreeType graphics backend): unstarted — see
+  `GAPS_NOTEPAD.md`, `GAPS_OFFICE.md`, `GAPS_GUI.md`.
 
 ## Reference
 Notepad++ source is cloned read-only to `../ref/notepad-plus-plus` for feature
