@@ -60,7 +60,9 @@ enum {
     UI_KEY_COLMODE,      /* toggle column/block selection */
     UI_KEY_EOL,          /* convert EOL (LF<->CRLF) */
     UI_KEY_MACRO,        /* toggle macro recording */
-    UI_KEY_REPLAY        /* replay last macro */
+    UI_KEY_REPLAY,       /* replay last macro */
+    UI_KEY_COMPLETE,      /* word completion (Ctrl-Space) */
+    UI_KEY_FOLD          /* fold current code block (Ctrl-Shift-F) */
 };
 
 /* Create a UI bound to `doc` and backend `be`. cols/rows seed the viewport. */
@@ -122,10 +124,21 @@ void ui_set_macro(UI *ui, UIMacro *m);
 void ui_toggle_macro(UI *ui);   /* start/stop recording */
 void ui_replay_macro(UI *ui);   /* replay last recording */
 
-/* --- column / EOL (Phase D) --- */
+/* --- column / EOL / completion (Phase D) --- */
 int  ui_get_colmode(const UI *ui);
 void ui_toggle_colmode(UI *ui);
 void ui_convert_eol(UI *ui);    /* flip LF <-> CRLF */
+void ui_complete(UI *ui);      /* word completion at cursor (Ctrl-Space) */
+
+/* --- folding (Phase D) --- */
+/* Toggle a fold over the inclusive line range [a,b]. Returns 1 if now folded,
+ * 0 if removed. Folded ranges are skipped in rendering (one placeholder). */
+int  ui_toggle_fold(UI *ui, size_t a, size_t b);
+int  ui_is_folded(const UI *ui, size_t line);
+void ui_unfold_all(UI *ui);
+/* Fold the code block (brace-matched) starting at the cursor line.
+ * Returns 1 if a fold was created, 0 otherwise. */
+int  ui_fold_current_block(UI *ui);
 
 /* Status string buffer builder (cursor Ln/Col, lang, dirty + find count). */
 void ui_status_string(const UI *ui, const char *lang, char *buf, size_t n);

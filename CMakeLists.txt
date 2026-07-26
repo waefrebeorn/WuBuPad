@@ -29,7 +29,8 @@ add_library(wubupad_core STATIC
   src/encode.c
   src/diff.c
   src/docs.c
-  src/json.c)
+  src/json.c
+  src/complete.c)
 target_include_directories(wubupad_core PUBLIC src)
 
 # Agent protocol library (the machine-facing "AGI GUI" over the core).
@@ -72,6 +73,16 @@ target_link_libraries(wubupad_ui PUBLIC ${UI_LIBS})
 if(SDL2_FOUND AND FREETYPE_FOUND)
   target_link_libraries(wubupad PRIVATE wubupad_agent wubupad_ui SDL2::SDL2 Freetype::Freetype)
 endif()
+
+# Acceptance test for folding (Phase D).
+add_executable(test_fold tests/test_fold.c)
+target_link_libraries(test_fold PRIVATE wubupad_ui)
+add_test(NAME fold COMMAND test_fold)
+
+# Acceptance test for completion + symbols (Phase D).
+add_executable(test_complete tests/test_complete.c)
+target_link_libraries(test_complete PRIVATE wubupad_ui)
+add_test(NAME complete COMMAND test_complete)
 
 # Acceptance test for editor features (Phase D).
 add_executable(test_editor tests/test_editor.c)

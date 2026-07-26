@@ -9,10 +9,12 @@
 #include "ui_find.h"
 #include "ui_theme.h"
 #include "ui_macro.h"
+#include "complete.h"
 #include "docs.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <ctype.h>
 
 /* declared in ui_headless.c */
 const UI_Backend *ui_headless_backend(void);
@@ -34,6 +36,8 @@ struct UI {
     UIFind *find;       /* find/replace controller (Phase B) */
     UITheme *theme;     /* active theme (Phase C) */
     Docs *docs;         /* multi-doc session (Phase C, NULL = single) */
+    size_t fold[128];    /* folded ranges as pairs (a0,b0,a1,b1,...); even cnt */
+    int    fold_n;       /* number of ranges (each uses 2 slots) */
 };
 
 UI *ui_create(Doc *doc, const UI_Backend *be, int cols, int rows) {
@@ -199,7 +203,35 @@ void ui_render(UI *ui, const char *lang) {
 
     for (int r = 0; r < text_rows; r++) {
         int view_row = text_top + r;
+        /* find the next logical line to show at this visible row, honoring
+         * folds (a folded range collapses to a single placeholder line). */
         size_t ln = (size_t)(ui->scroll_row + r);
+        int placeholder = 0;
+        if (ui->fold_n > 0) {
+            /* advance ln to the next non-folded line (or a fold's first line) */
+            while (ln < nlines && ui_is_folded(ui, ln)) {
+                /* if ln is the start of a fold, show placeholder + skip range */
+                int started = 0;
+                for (int i = 0; i < ui->fold_n; i++) {
+                    if (ui->fold[2*i] == ln) { started = 1; ln = ui->fold[2*i+1] + 1; break; }
+                }
+                if (!started) ln++;
+                placeholder = started; /* set when we just emitted a placeholder */
+                if (started) break;
+            }
+        }
+        if (placeholder) {
+            /* find the fold range we just collapsed to report its size */
+            size_t cnt = 0;
+            for (int i = 0; i < ui->fold_n; i++) {
+                if (ui->fold[2*i+1] + 1 == ln) { cnt = ui->fold[2*i+1] - ui->fold[2*i] + 1; break; }
+            }
+            char ph[40];
+            snprintf(ph, sizeof ph, "+ %zu lines folded", cnt);
+            ui->be->draw_line(ui->bstate, view_row, ph, -1, TK_COMMENT);
+            if (ui->be->draw_gutter) ui->be->draw_gutter(ui->bstate, view_row, (int)(ui->scroll_row + r) + 1);
+            continue;
+        }
         if (ln >= nlines) {
             ui->be->draw_line(ui->bstate, view_row, "", 0, TK_NONE);
             if (ui->be->draw_gutter) ui->be->draw_gutter(ui->bstate, view_row, 0);
@@ -272,6 +304,8 @@ void ui_apply(UI *ui, char ch, int key) {
         case UI_KEY_EOL:     ui_convert_eol(ui); break;
         case UI_KEY_MACRO:   ui_toggle_macro(ui); break;
         case UI_KEY_REPLAY:  ui_replay_macro(ui); break;
+        case UI_KEY_COMPLETE: ui_complete(ui);   break;
+        case UI_KEY_FOLD:     ui_fold_current_block(ui); break;
         default:
             if (ch == '\n') ui_newline(ui);
             else if (ch) { char buf[2] = {ch,0}; ui_insert_text(ui, buf, 1); }
@@ -437,6 +471,92 @@ void ui_toggle_colmode(UI *ui) {
 void ui_convert_eol(UI *ui) {
     if (!ui || !ui->doc) return;
     doc_convert_eol(ui->doc, doc_eol_mode(ui->doc) ? 0 : 1);
+}
+
+/* --- folding (Phase D) --- */
+int ui_is_folded(const UI *ui, size_t line) {
+    if (!ui) return 0;
+    for (int i = 0; i < ui->fold_n; i++)
+        if (line >= ui->fold[2*i] && line <= ui->fold[2*i+1]) return 1;
+    return 0;
+}
+static int fold_index(const UI *ui, size_t a, size_t b) {
+    for (int i = 0; i < ui->fold_n; i++)
+        if (ui->fold[2*i] == a && ui->fold[2*i+1] == b) return i;
+    return -1;
+}
+int ui_toggle_fold(UI *ui, size_t a, size_t b) {
+    if (!ui) return 0;
+    if (a > b) { size_t t = a; a = b; b = t; }
+    int idx = fold_index(ui, a, b);
+    if (idx >= 0) {  /* remove */
+        for (int i = idx; i + 1 < ui->fold_n; i++) {
+            ui->fold[2*i] = ui->fold[2*(i+1)];
+            ui->fold[2*i+1] = ui->fold[2*(i+1)+1];
+        }
+        ui->fold_n--;
+        return 0;
+    }
+    if (ui->fold_n * 2 + 1 >= (int)(sizeof(ui->fold)/sizeof(ui->fold[0]))) return 0;
+    ui->fold[2*ui->fold_n] = a;
+    ui->fold[2*ui->fold_n+1] = b;
+    ui->fold_n++;
+    return 1;
+}
+void ui_unfold_all(UI *ui) { if (ui) ui->fold_n = 0; }
+
+int ui_fold_current_block(UI *ui) {
+    if (!ui || !ui->doc) return 0;
+    char *text = doc_text(ui->doc);
+    size_t len = strlen(text);
+    size_t pos = doc_cursor(ui->doc);
+    size_t cline, ccol; doc_line_col(ui->doc, pos, &cline, &ccol);
+    /* find first '{' at or after the cursor line */
+    size_t i = doc_line_byte_start(ui->doc, cline);
+    int depth = 0, started = 0;
+    size_t open_line = 0, close_line = 0;
+    for (; i < len; i++) {
+        if (text[i] == '{') {
+            if (!started) { started = 1; depth = 1;
+                size_t l; doc_line_col(ui->doc, i, &l, &(size_t){0}); open_line = l; }
+            else depth++;
+        } else if (text[i] == '}') {
+            if (started) { depth--; if (depth == 0) {
+                size_t l; doc_line_col(ui->doc, i, &l, &(size_t){0}); close_line = l; break; } }
+        }
+    }
+    free(text);
+    if (!started || close_line <= open_line) return 0;
+    ui_toggle_fold(ui, open_line, close_line);
+    return 1;
+}
+
+void ui_complete(UI *ui) {
+    if (!ui || !ui->doc) return;
+    char *text = doc_text(ui->doc);
+    size_t len = strlen(text);
+    size_t pos = doc_cursor(ui->doc);
+    /* find start of the word under/before the cursor */
+    size_t start = pos;
+    while (start > 0 && (isalnum((unsigned char)text[start-1]) || text[start-1] == '_'))
+        start--;
+    if (start == pos) { free(text); return; }   /* nothing to complete */
+    char *prefix = malloc(pos - start + 1);
+    memcpy(prefix, text + start, pos - start);
+    prefix[pos - start] = 0;
+    size_t n = 0;
+    char **c = doc_complete(text, len, prefix, &n);
+    if (n > 0) {
+        const char *best = c[0];
+        size_t pl = strlen(prefix);
+        /* insert the part of the best match beyond the prefix */
+        const char *suf = best + pl;
+        if (*suf) doc_insert(ui->doc, pos, suf, strlen(suf));
+    }
+    doc_complete_free(c, n);
+    free(prefix);
+    free(text);
+    ui_scroll_to_cursor(ui);
 }
 
 /* These live here because UI is a complete type only in this TU. They reach

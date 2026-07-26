@@ -105,6 +105,8 @@ static int tty_get_key(void *st, char *ch, int *key) {
         case 7:   *key = UI_KEY_EOL;    break; /* ctrl-g EOL convert */
         case 2:   *key = UI_KEY_MACRO;  break; /* ctrl-b macro toggle */
         case 14:  *key = UI_KEY_REPLAY; break; /* ctrl-n replay macro */
+        case 19:  *key = UI_KEY_COMPLETE;break; /* ctrl-space complete */
+        case 6:   *key = UI_KEY_FOLD;    break; /* ctrl-f fold block */
         default:  *key = UI_KEY_NONE;  break;
     }
     return 0;
