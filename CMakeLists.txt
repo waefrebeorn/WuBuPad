@@ -40,8 +40,6 @@ target_include_directories(wubupad_agent PUBLIC src)
 
 # wubuOS-facing CLI: NDJSON in -> NDJSON out (document ingestion engine),
 # plus an interactive TUI mode (--edit) backed by the UI layer.
-add_executable(wubupad apps/wubupad/main.c)
-target_link_libraries(wubupad PRIVATE wubupad_agent wubupad_ui)
 
 # Acceptance test for the core.
 add_executable(test_core tests/test_core.c)
@@ -49,29 +47,41 @@ target_link_libraries(test_core PRIVATE wubupad_core)
 add_test(NAME core COMMAND test_core)
 
 # UI abstraction layer (opaque view/renderer over the core).
-# The gfx backend (SDL2 + FreeType2) is optional; if both libs are found we
-# compile ui_gfx.c and link them into the editor app. Without them the TUI
-# backend still builds (no hard dep).
+# Split into a headless-only UI lib (no windowing deps, reused by the agent,
+# tests, and the WuBuOffice bridge) and an optional gfx lib (SDL2+FreeType2)
+# that only adds the graphical backend. This keeps SDL2/Freetype out of the
+# headless path entirely.
 find_package(SDL2 QUIET)
 find_package(Freetype QUIET)
-set(UI_SOURCES src/ui/ui.c src/ui/ui_headless.c src/ui/ui_tty.c)
-set(UI_LIBS wubupad_core)
+set(WUBUPAD_WITH_GFX OFF)
 if(SDL2_FOUND AND FREETYPE_FOUND)
-  list(APPEND UI_SOURCES src/ui/ui_gfx.c)
-  list(APPEND UI_LIBS SDL2::SDL2 Freetype::Freetype)
+  set(WUBUPAD_WITH_GFX ON)
   add_compile_definitions(WUBUPAD_WITH_GFX=1)
   message(STATUS "WuBuPad: gfx backend ENABLED (SDL2 + FreeType2)")
 else()
   message(STATUS "WuBuPad: gfx backend DISABLED (SDL2/FreeType2 not found)")
 endif()
 
-add_library(wubupad_ui STATIC ${UI_SOURCES} src/ui/ui_find.c src/ui/ui_theme.c src/ui/ui_macro.c)
+# Headless UI lib: ui.c + headless + tty backends (no SDL2/Freetype).
+add_library(wubupad_ui STATIC
+  src/ui/ui.c src/ui/ui_headless.c src/ui/ui_tty.c
+  src/ui/ui_find.c src/ui/ui_theme.c src/ui/ui_macro.c)
 target_include_directories(wubupad_ui PUBLIC src)
-target_link_libraries(wubupad_ui PUBLIC ${UI_LIBS})
+target_link_libraries(wubupad_ui PUBLIC wubupad_core)
 
-# Editor app links the gfx libs too (main.c references ui_gfx_backend).
-if(SDL2_FOUND AND FREETYPE_FOUND)
-  target_link_libraries(wubupad PRIVATE wubupad_agent wubupad_ui SDL2::SDL2 Freetype::Freetype)
+# Graphical backend (optional). Provides ui_gfx_backend() on top of wubupad_ui.
+if(WUBUPAD_WITH_GFX)
+  add_library(wubupad_gfx STATIC src/ui/ui_gfx.c)
+  target_include_directories(wubupad_gfx PUBLIC src)
+  target_link_libraries(wubupad_gfx PUBLIC wubupad_ui SDL2::SDL2 Freetype::Freetype)
+endif()
+
+# wubuOS-facing CLI: NDJSON in -> NDJSON out, plus an interactive TUI/gfx mode.
+add_executable(wubupad apps/wubupad/main.c)
+if(WUBUPAD_WITH_GFX)
+  target_link_libraries(wubupad PRIVATE wubupad_agent wubupad_ui wubupad_gfx SDL2::SDL2 Freetype::Freetype)
+else()
+  target_link_libraries(wubupad PRIVATE wubupad_agent wubupad_ui)
 endif()
 
 # Acceptance test for folding (Phase D).
@@ -108,7 +118,7 @@ add_test(NAME ui COMMAND test_ui)
 # by returning PASS-skip if SDL/FreeType were unavailable at build time).
 if(SDL2_FOUND AND FREETYPE_FOUND)
   add_executable(test_ui_gfx tests/test_ui_gfx.c)
-  target_link_libraries(test_ui_gfx PRIVATE wubupad_ui SDL2::SDL2 Freetype::Freetype)
+  target_link_libraries(test_ui_gfx PRIVATE wubupad_gfx SDL2::SDL2 Freetype::Freetype)
   add_test(NAME ui_gfx COMMAND test_ui_gfx)
 endif()
 
