@@ -14,6 +14,8 @@ const UI_Backend *ui_headless_backend(void);
 /* declared in ui_tty.c */
 const UI_Backend *ui_tty_backend(void);
 int ui__tty_enable_raw(void *bstate);
+/* declared in ui_gfx.c */
+const UI_Backend *ui_gfx_backend(void);
 
 struct UI {
     Doc *doc;

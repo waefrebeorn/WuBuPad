@@ -48,17 +48,43 @@ target_link_libraries(test_core PRIVATE wubupad_core)
 add_test(NAME core COMMAND test_core)
 
 # UI abstraction layer (opaque view/renderer over the core).
-add_library(wubupad_ui STATIC
-  src/ui/ui.c
-  src/ui/ui_headless.c
-  src/ui/ui_tty.c)
+# The gfx backend (SDL2 + FreeType2) is optional; if both libs are found we
+# compile ui_gfx.c and link them into the editor app. Without them the TUI
+# backend still builds (no hard dep).
+find_package(SDL2 QUIET)
+find_package(Freetype QUIET)
+set(UI_SOURCES src/ui/ui.c src/ui/ui_headless.c src/ui/ui_tty.c)
+set(UI_LIBS wubupad_core)
+if(SDL2_FOUND AND FREETYPE_FOUND)
+  list(APPEND UI_SOURCES src/ui/ui_gfx.c)
+  list(APPEND UI_LIBS SDL2::SDL2 Freetype::Freetype)
+  add_compile_definitions(WUBUPAD_WITH_GFX=1)
+  message(STATUS "WuBuPad: gfx backend ENABLED (SDL2 + FreeType2)")
+else()
+  message(STATUS "WuBuPad: gfx backend DISABLED (SDL2/FreeType2 not found)")
+endif()
+
+add_library(wubupad_ui STATIC ${UI_SOURCES})
 target_include_directories(wubupad_ui PUBLIC src)
-target_link_libraries(wubupad_ui PUBLIC wubupad_core)
+target_link_libraries(wubupad_ui PUBLIC ${UI_LIBS})
+
+# Editor app links the gfx libs too (main.c references ui_gfx_backend).
+if(SDL2_FOUND AND FREETYPE_FOUND)
+  target_link_libraries(wubupad PRIVATE wubupad_agent wubupad_ui SDL2::SDL2 Freetype::Freetype)
+endif()
 
 # Acceptance test for the UI controller (driven on the headless backend).
 add_executable(test_ui tests/test_ui.c)
 target_link_libraries(test_ui PRIVATE wubupad_ui)
 add_test(NAME ui COMMAND test_ui)
+
+# Graphics backend test (only meaningful when gfx is linked; test guards itself
+# by returning PASS-skip if SDL/FreeType were unavailable at build time).
+if(SDL2_FOUND AND FREETYPE_FOUND)
+  add_executable(test_ui_gfx tests/test_ui_gfx.c)
+  target_link_libraries(test_ui_gfx PRIVATE wubupad_ui SDL2::SDL2 Freetype::Freetype)
+  add_test(NAME ui_gfx COMMAND test_ui_gfx)
+endif()
 
 # Acceptance test for the agent protocol.
 add_executable(test_agent tests/test_agent.c)

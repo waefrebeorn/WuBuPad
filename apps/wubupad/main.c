@@ -12,6 +12,7 @@
 #include "doc.h"
 #include "ui/ui.h"
 #include "ui/ui_tty.h"
+#include "ui/ui_gfx.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -36,8 +37,10 @@ static char *slurp(const char *path) {
 int main(int argc, char **argv) {
     int agent_mode = 1;
     const char *edit_file = NULL;
+    int gfx_mode = 0;
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "--agent") == 0)      agent_mode = 1;
+        else if (strcmp(argv[i], "--gfx") == 0)   gfx_mode = 1;
         else if (strcmp(argv[i], "--edit") == 0) { agent_mode = 0; if (i+1 < argc) edit_file = argv[++i]; }
         else if (argv[i][0] != '-') {             agent_mode = 0; edit_file = argv[i]; }
     }
@@ -52,10 +55,20 @@ int main(int argc, char **argv) {
         return rc ? 1 : 0;
     }
 
-    /* Interactive TUI mode */
+    /* Interactive mode (TUI or GFX) */
     char *text = edit_file ? slurp(edit_file) : NULL;
     Doc *d = doc_create(text ? text : "");
     free(text);
+
+    if (gfx_mode) {
+        UI *ui = ui_create(d, ui_gfx_backend(), 0, 0);
+        if (!ui) { fprintf(stderr, "ui_create (gfx) failed\n"); doc_free(d); return 1; }
+        ui_run(ui, edit_file ? "c" : NULL);
+        ui_free(ui);
+        doc_free(d);
+        return 0;
+    }
+
     UI *ui = ui_create(d, ui_tty_backend(), 0, 0);
     if (!ui) { fprintf(stderr, "ui_create failed\n"); doc_free(d); return 1; }
     if (ui_tty_enable_raw(ui) != 0) {
