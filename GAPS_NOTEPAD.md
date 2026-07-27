@@ -37,7 +37,7 @@ module plan.
 | Bookmark / line ops | view layer | **CLOSED** (wubuos: Ctrl+F2 toggle, F2/Shift+F2 jump) |
 | EOL convert (CRLF/LF) | buffer newline model | DONE (headless); **GUI EOL convert = CLOSED** |
 | Function list | lexer symbol table | **CLOSED** (wubuos: Ctrl+Shift+L panel via `lex_symbols`) |
-| Plugin architecture | stable C ABI + loader | GAP — needs ABI + loader (separate work) |
+| Plugin architecture | stable C ABI + loader | **CLOSED** (wubuos: `wuos_plugin.h` ABI v1, `dlopen` loader, sample `.so`, Ctrl+Shift+K runs) |
 | Dark mode / styling | GUI theme layer | **CLOSED** (wubuos: Ctrl+` theme toggle) |
 | Compare / diff | `src/diff` (LCS) | DONE (headless); **GUI compare view = CLOSED** |
 | Session save/restore | session mgr (`src/docs`) | DONE (model); **GUI = CLOSED** (wubuos: Ctrl+Shift+S save, restore on launch) |
@@ -58,10 +58,11 @@ module plan.
 - Code folding: Ctrl+Shift+F folds the brace block at the cursor (hides body, ▾ marker).
 - Function list: Ctrl+Shift+L toggles a right-hand panel listing `lex_symbols` (name : Ln).
 - Session save/restore: Ctrl+Shift+S save, restore on launch (WUBUOS_RESTORE=1).
+- Plugin architecture: `wuos_plugin.h` stable C ABI (v1) + `dlopen` loader (`plugin.c`) scanning `~/.wubuos/plugins/*.so`; sample plugin builds to `sample_plugin.so`; Ctrl+Shift+K runs the next loaded plugin (host log + exec toast). Headless `test_plugin_abi` + `test_view` plugin block verify load→init→exec.
 
 ## Remaining gap (engine work, not GUI)
-- **Plugin ABI / loader** — separate C-ABI + dynamic-loader effort. Everything else
-  on the Notepad++ list is now DONE (engine) + CLOSED (GUI shell).
+- _(none)_ — Plugin ABI/loader is now CLOSED. Everything on the Notepad++ list
+  is DONE (engine) + CLOSED (GUI shell).
 
 
 What remains is the **UX layer** on top: the GUI itself (tabs bar, find box,
