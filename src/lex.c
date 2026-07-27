@@ -182,6 +182,88 @@ static size_t unknown_lex(const char *t, size_t len, LexSpan *out, size_t cap) {
     return e.n;
 }
 
+/* ---- fold regions (brace-based, language-agnostic) ------------------- */
+static int in_literal(const char *t, size_t i) {
+    int str = 0, chr = 0, lc = 0, bc = 0;
+    for (size_t q = 0; q < i; q++) {
+        char c = t[q], n = (q + 1 < i) ? t[q + 1] : 0;
+        if (str)      { if (c == '\\' && n) { q++; } else if (c == '"') str = 0; }
+        else if (chr) { if (c == '\\' && n) { q++; } else if (c == '\'') chr = 0; }
+        else if (bc)  { if (c == '*' && n == '/') bc = 0; }
+        else if (lc)  { if (c == '\n') lc = 0; }
+        else {
+            if (c == '"') str = 1;
+            else if (c == '\'') chr = 1;
+            else if (c == '/' && n == '*') bc = 1;
+            else if (c == '/' && n == '/') lc = 1;
+        }
+    }
+    return str || chr || bc || lc;
+}
+
+size_t lex_folds(const char *text, size_t len, LexFold *out, size_t cap) {
+    size_t n = 0, sp = 0, stack[256], line = 0;
+    for (size_t i = 0; i < len; i++) {
+        char c = text[i];
+        if (c == '\n') { line++; continue; }
+        if (in_literal(text, i)) continue;
+        if (c == '{') { if (sp < 256) stack[sp++] = line; }
+        else if (c == '}' && sp > 0) {
+            size_t a = stack[--sp];
+            if (line > a && n < cap) { out[n].start = a; out[n].end = line; n++; }
+        }
+    }
+    return n;
+}
+
+/* ---- top-level symbols (C function/definition list) ----------------- */
+static size_t lex_line_of(const char *t, size_t off) {
+    size_t ln = 0;
+    for (size_t q = 0; q < off; q++) if (t[q] == '\n') ln++;
+    return ln;
+}
+
+size_t lex_symbols(const char *text, size_t len, LexSym *out, size_t cap) {
+    size_t n = 0, line = 0, i = 0;
+    while (i < len && n < cap) {
+        if (!isalpha((unsigned char)text[i]) && text[i] != '_') {
+            if (text[i] == '\n') line++;
+            i++;
+            continue;
+        }
+        size_t w0 = i, c0 = 0;
+        for (size_t q = w0; q > 0 && text[q-1] != '\n'; q--) c0++;
+        size_t w1 = i;
+        while (w1 < len && (isalnum((unsigned char)text[w1]) || text[w1] == '_')) w1++;
+        size_t wlen = w1 - w0;
+        int is_kw = kw_match(text + w0, wlen, c_keywords, sizeof c_keywords/sizeof *c_keywords);
+        if (is_kw) { i = w1; continue; }   /* control-flow keywords aren't defs */
+        size_t j = w1;
+        while (j < len && (text[j]==' '||text[j]=='\t')) j++;
+        if (j < len && text[j] == '(') {
+            size_t p = j, bal = 0;
+            while (p < len) {
+                if (text[p] == '(') bal++;
+                else if (text[p] == ')') { bal--; if (bal == 0) { p++; break; } }
+                else if (text[p] == '\n') line++;
+                p++;
+            }
+            while (p < len && (text[p]==' '||text[p]=='\t'||text[p]=='\n')) { if (text[p]=='\n') line++; p++; }
+            if (p < len && text[p] == '{') {
+                out[n].line = lex_line_of(text, w0);
+                out[n].col = c0;
+                out[n].name_off = w0;
+                out[n].name_len = wlen;
+                out[n].kind = is_kw ? TK_KEYWORD : TK_TYPE;
+                n++; i = p + 1; continue;
+            }
+        }
+        i = w1;
+    }
+    return n;
+}
+
+/* ---- registry -------------------------------------------------------- */
 Lex *lex_create(const char *lang) {
     if (!lang) return NULL;
     Lex *l = malloc(sizeof *l);

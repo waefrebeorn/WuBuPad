@@ -46,6 +46,11 @@ add_executable(test_core tests/test_core.c)
 target_link_libraries(test_core PRIVATE wubupad_core)
 add_test(NAME core COMMAND test_core)
 
+# Unit test for lexer fold regions + symbol (function-list) extraction.
+add_executable(test_lex_fold tests/test_lex_fold.c)
+target_link_libraries(test_lex_fold PRIVATE wubupad_core)
+add_test(NAME lex_fold COMMAND test_lex_fold)
+
 # UI abstraction layer (opaque view/renderer over the core).
 # Split into a headless-only UI lib (no windowing deps, reused by the agent,
 # tests, and the WuBuOffice bridge) and an optional gfx lib (SDL2+FreeType2)

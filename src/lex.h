@@ -24,6 +24,20 @@ typedef enum {
 /* A token range in the document (byte offsets, half-open). */
 typedef struct { size_t start; size_t end; LexTok kind; } LexSpan;
 
+/* A foldable brace region (0-based line numbers). Folding hides the body
+ * lines (start+1 .. end-1), keeping the header lines visible. */
+typedef struct { size_t start; size_t end; } LexFold;
+
+/* A top-level symbol (function/definition) for the function list.
+ * `name_off`/`name_len` index into the source text `t` passed to lex_symbols. */
+typedef struct {
+    size_t line;       /* 0-based line of the symbol name */
+    size_t col;        /* 0-based column */
+    size_t name_off;   /* byte offset of the name in `t` */
+    size_t name_len;   /* length of the name */
+    LexTok kind;       /* TK_TYPE for functions, TK_KEYWORD for macros, etc. */
+} LexSym;
+
 typedef struct Lex Lex;
 
 /* Registry: create a lexer for a named language ("c", "json", ...).
@@ -36,5 +50,14 @@ void lex_free(Lex *l);
 size_t lex_run(Lex *l, const char *text, size_t len, LexSpan *out, size_t cap);
 
 const char *lex_lang(const Lex *l);
+
+/* Fold regions (brace-based). Fills `out` (capacity `cap`) with foldable
+ * blocks; returns the count. Cheap and language-agnostic (skips string/char/
+ * comment literals). */
+size_t lex_folds(const char *text, size_t len, LexFold *out, size_t cap);
+
+/* Top-level symbols for a function list. Fills `out` (capacity `cap`);
+ * returns the count. `name_off`/`name_len` index into `text`. */
+size_t lex_symbols(const char *text, size_t len, LexSym *out, size_t cap);
 
 #endif /* WUBUPAD_LEX_H */

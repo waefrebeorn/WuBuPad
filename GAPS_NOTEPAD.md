@@ -28,7 +28,7 @@ module plan.
 | Undo/redo (linear + grouped) | `src/doc` undo stack | DONE (linear LIFO, tested) |
 | Cursor + selection + edit ops | `src/doc` cursor | DONE (byte-level, tested) |
 | Tabs / multi-document | session mgr (`src/docs`) | DONE (headless); **GUI tab bar = CLOSED** (wubuos shell + Editor multi-doc) |
-| Code folding | lexer fold levels + view | GAP — needs lexer fold-level API (not yet in `lex.h`) |
+| Code folding | lexer fold levels + view | **CLOSED** (wubuos: Ctrl+Shift+F folds brace block via `lex_folds`; hidden lines skipped + ▾ marker) |
 | Auto-completion | symbol index from lexer | **CLOSED** (wubuos: builtin C words + doc-identifier scan) |
 | Regex search/replace | `src/search` (Thompson NFA) | DONE (headless); **GUI find-box = CLOSED** |
 | Macro record/play | command log + replay | **CLOSED** (wubuos: session-global op buffer) |
@@ -36,7 +36,7 @@ module plan.
 | Encoding detect/convert | `src/encode` | DONE (headless); **GUI encoding menu = CLOSED** |
 | Bookmark / line ops | view layer | **CLOSED** (wubuos: Ctrl+F2 toggle, F2/Shift+F2 jump) |
 | EOL convert (CRLF/LF) | buffer newline model | DONE (headless); **GUI EOL convert = CLOSED** |
-| Function list | lexer symbol table | GAP — needs lexer symbol-table API (not yet in `lex.h`) |
+| Function list | lexer symbol table | **CLOSED** (wubuos: Ctrl+Shift+L panel via `lex_symbols`) |
 | Plugin architecture | stable C ABI + loader | GAP — needs ABI + loader (separate work) |
 | Dark mode / styling | GUI theme layer | **CLOSED** (wubuos: Ctrl+` theme toggle) |
 | Compare / diff | `src/diff` (LCS) | DONE (headless); **GUI compare view = CLOSED** |
@@ -55,12 +55,13 @@ module plan.
 - Column/block selection: Ctrl+Alt+C on, arrows extend rectangular block.
 - Macro record/play: Ctrl+Shift+R record, Ctrl+Shift+P play (session-globalopter).
 - Auto-completion: Ctrl+Space popup (builtin C words + doc identifiers).
+- Code folding: Ctrl+Shift+F folds the brace block at the cursor (hides body, ▾ marker).
+- Function list: Ctrl+Shift+L toggles a right-hand panel listing `lex_symbols` (name : Ln).
 - Session save/restore: Ctrl+Shift+S save, restore on launch (WUBUOS_RESTORE=1).
 
-## Remaining gaps (require engine extensions, not just GUI)
-- **Code folding** — needs `lex.h` to expose per-line fold levels.
-- **Function list** — needs `lex.h` to expose a symbol table.
-- **Plugin ABI / loader** — separate C-ABI + dynamic-loader effort.
+## Remaining gap (engine work, not GUI)
+- **Plugin ABI / loader** — separate C-ABI + dynamic-loader effort. Everything else
+  on the Notepad++ list is now DONE (engine) + CLOSED (GUI shell).
 
 
 What remains is the **UX layer** on top: the GUI itself (tabs bar, find box,
