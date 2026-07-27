@@ -165,16 +165,19 @@ static UIRGB gfx_color(GFX *g, UIToken tok) {
     return ui_theme_color(g->theme, tok);
 }
 
-static void gfx_draw_glyph(GFX *g, int cp, int px, int py, UIToken tok) {
+/* Returns the glyph advance (px) so callers can advance by real width,
+ * NOT by a fixed cell width (critical for correct UTF-8 / proportional text). */
+static int gfx_draw_glyph(GFX *g, int cp, int px, int py, UIToken tok) {
     int gi = gfx_glyph_index(g, (Uint32)cp);
     if (gi < 0) gi = gfx_cache_glyph(g, (Uint32)(cp ? cp : ' '));
-    if (gi < 0) return;
+    if (gi < 0) return g->char_w;
     Glyph *gl = &g->glyphs[gi];
-    if (!gl->tex || gl->w <= 0 || gl->h <= 0) return;
+    if (!gl->tex || gl->w <= 0 || gl->h <= 0) return g->char_w;
     UIRGB c = gfx_color(g, tok);
     SDL_SetTextureColorMod(gl->tex, c.r, c.g, c.b);
     SDL_Rect dst = { px + gl->bx, py - gl->by + g->line_h, gl->w, gl->h };
     SDL_RenderCopy(g->ren, gl->tex, NULL, &dst);
+    return gl->ax;
 }
 
 /* --- vtable --- */
@@ -313,10 +316,19 @@ static void gfx_draw_line(void *st, int row, const char *text, int len, int kind
     }
 #endif
     int px = px0;
-    for (int i = 0; i < n; i++) {
-        unsigned char c = (unsigned char)text[i];
-        gfx_draw_glyph(g, c, px, py, tok);
-        px += g->char_w;
+    /* Decode UTF-8 into codepoints (NOT bytes) and advance by the real glyph
+     * advance. Byte-wise rendering is the classic mojibake bug (cafe -> c a f
+     * A- M-). This fallback path only runs when shaping is disabled. */
+    for (int i = 0; i < n; ) {
+        unsigned int cp;
+        unsigned char b0 = (unsigned char)text[i];
+        if (b0 < 0x80)            { cp = b0;                                   i += 1; }
+        else if ((b0 & 0xE0)==0xC0){ cp = (b0&0x1F)<<6;  if (i+1<n) cp |= (unsigned char)text[i+1]&0x3F; i += 2; }
+        else if ((b0 & 0xF0)==0xE0){ cp = (b0&0x0F)<<12; if (i+1<n) cp |= ((unsigned char)text[i+1]&0x3F)<<6; if (i+2<n) cp |= (unsigned char)text[i+2]&0x3F; i += 3; }
+        else if ((b0 & 0xF8)==0xF0){ cp = (b0&0x07)<<18; if (i+1<n) cp |= ((unsigned char)text[i+1]&0x3F)<<12; if (i+2<n) cp |= ((unsigned char)text[i+2]&0x3F)<<6; if (i+3<n) cp |= (unsigned char)text[i+3]&0x3F; i += 4; }
+        else                      { cp = b0;                                   i += 1; } /* invalid lead byte */
+        if (cp == 0) break;
+        px += gfx_draw_glyph(g, (int)cp, px, py, tok);
     }
 }
 
