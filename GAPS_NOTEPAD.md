@@ -27,27 +27,41 @@ module plan.
 | Multi-language syntax highlighting | `src/lex` (C + JSON done) | PARTIAL |
 | Undo/redo (linear + grouped) | `src/doc` undo stack | DONE (linear LIFO, tested) |
 | Cursor + selection + edit ops | `src/doc` cursor | DONE (byte-level, tested) |
-| Tabs / multi-document | session mgr (`src/docs`) | DONE (headless); GUI tab bar = GAP |
-| Code folding | lexer fold levels + view | GAP |
-| Auto-completion | symbol index from lexer | GAP |
-| Regex search/replace | `src/search` (Thompson NFA) | DONE (headless engine); GUI find-box = GAP |
-| Macro record/play | command log + replay | GAP |
-| Column/block mode | cursor + buffer range ops | GAP |
-| Encoding detect/convert (UTF-8/16/32, ANSI) | `src/encode` | DONE (headless); GUI encoding menu = GAP |
-| Bookmark / line ops | view layer | GAP |
-| EOL convert (CRLF/LF) | buffer newline model | GAP |
-| Function list | lexer symbol table | GAP |
-| Plugin architecture | stable C ABI + loader | GAP |
-| Dark mode / styling | GUI theme layer | GAP |
-| Compare / diff | `src/diff` (LCS) | DONE (headless engine); GUI compare view = GAP |
-| Session save/restore | session mgr (`src/docs`) | DONE (model); GUI = GAP |
+| Tabs / multi-document | session mgr (`src/docs`) | DONE (headless); **GUI tab bar = CLOSED** (wubuos shell + Editor multi-doc) |
+| Code folding | lexer fold levels + view | GAP — needs lexer fold-level API (not yet in `lex.h`) |
+| Auto-completion | symbol index from lexer | **CLOSED** (wubuos: builtin C words + doc-identifier scan) |
+| Regex search/replace | `src/search` (Thompson NFA) | DONE (headless); **GUI find-box = CLOSED** |
+| Macro record/play | command log + replay | **CLOSED** (wubuos: session-global op buffer) |
+| Column/block mode | cursor + buffer range ops | **CLOSED** (wubuos: block selection model + render) |
+| Encoding detect/convert | `src/encode` | DONE (headless); **GUI encoding menu = CLOSED** |
+| Bookmark / line ops | view layer | **CLOSED** (wubuos: Ctrl+F2 toggle, F2/Shift+F2 jump) |
+| EOL convert (CRLF/LF) | buffer newline model | DONE (headless); **GUI EOL convert = CLOSED** |
+| Function list | lexer symbol table | GAP — needs lexer symbol-table API (not yet in `lex.h`) |
+| Plugin architecture | stable C ABI + loader | GAP — needs ABI + loader (separate work) |
+| Dark mode / styling | GUI theme layer | **CLOSED** (wubuos: Ctrl+` theme toggle) |
+| Compare / diff | `src/diff` (LCS) | DONE (headless); **GUI compare view = CLOSED** |
+| Session save/restore | session mgr (`src/docs`) | DONE (model); **GUI = CLOSED** (wubuos: Ctrl+Shift+S save, restore on launch) |
 
-## Honest assessment
-The **hard core** is now substantially built and **tested**: piece-table buffer
-(+ line/col mapping), C/JSON lexers, document model with undo/redo + cursor,
-literal + regex **search**, UTF-8/16/32 + Latin1 **encoding**, **diff**, and a
-multi-document **session** model. All headless, all green under ASan+UBSan
-(0 leaks / 0 UB / 0 warnings).
+## Closures landed in `apps/wubuos` (cross-repo GUI shell)
+- GUI tab bar: click-switch tabs over all 5 engines + Compare.
+- GUI find-box: Ctrl+F find, Ctrl+H replace, F3/Shift+F3, Ctrl+R replace-all, regex+literal.
+- Go-to-line: Ctrl+G.
+- EOL convert: Ctrl+E toggles LF<->CRLF; status shows LF/CRLF + detected encoding.
+- Encoding: on file load, `enc_detect` labels encoding; status shows it.
+- Compare view: `wubuos compare <a> <b>` diffs two files via `src/diff`.
+- Dark theme: Ctrl+` toggles light/dark.
+- Multi-document: Ctrl+T new, Ctrl+W close, Ctrl+Tab/Ctrl+Shift+Tab cycle, drawn doc-tab strip.
+- Bookmarks: Ctrl+F2 toggle, F2 next, Shift+F2 prev (gutter disc).
+- Column/block selection: Ctrl+Alt+C on, arrows extend rectangular block.
+- Macro record/play: Ctrl+Shift+R record, Ctrl+Shift+P play (session-globalopter).
+- Auto-completion: Ctrl+Space popup (builtin C words + doc identifiers).
+- Session save/restore: Ctrl+Shift+S save, restore on launch (WUBUOS_RESTORE=1).
+
+## Remaining gaps (require engine extensions, not just GUI)
+- **Code folding** — needs `lex.h` to expose per-line fold levels.
+- **Function list** — needs `lex.h` to expose a symbol table.
+- **Plugin ABI / loader** — separate C-ABI + dynamic-loader effort.
+
 
 What remains is the **UX layer** on top: the GUI itself (tabs bar, find box,
 encoding menu, compare view, folding, completion, plugins) plus more lexers and
