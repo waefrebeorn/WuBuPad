@@ -1,5 +1,16 @@
 # WuBuPad
 
+---
+
+## License
+
+This project is licensed under the **Waefrebeorn Umbrella License v3.0**.
+See the [LICENSE](LICENSE) file for the full license text.
+
+The Waefrebeorn Umbrella License is a custom source-available license.
+It is not OSI-approved and not FSF-approved.
+
+
 A **clean, ground-up C11** code editor being built to rival Notepad++ feature
 coverage — without forking it. The **first UI is the AGI interface**: WuBuPad
 ships as a document **ingestion + regurgitation engine** for the wubuOS AGI OS,
