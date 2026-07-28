@@ -145,6 +145,12 @@ else()
   target_link_libraries(wubupad PRIVATE wubupad_agent wubupad_ui wubupad_atom)
 endif()
 
+# Headless screenshot tool (renders one frame to a raw RGBA file).
+if(SDL2_FOUND AND FREETYPE_FOUND)
+  add_executable(shot apps/wubupad/shot.c)
+  target_link_libraries(shot PRIVATE wubupad_ui wubupad_gfx wubupad_core SDL2::SDL2 Freetype::Freetype)
+endif()
+
 # Acceptance test for the Atom subsystem (command palette driving the UI).
 add_executable(test_atom tests/test_atom.c)
 target_link_libraries(test_atom PRIVATE wubupad_ui)

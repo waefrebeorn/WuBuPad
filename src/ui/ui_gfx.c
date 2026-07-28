@@ -49,6 +49,7 @@ typedef struct {
     int init_ok;
     ShapeCtx *shape;       /* text shaping (NULL = legacy path) */
     int *caret_x;          /* per-row source-char pixel x (row*CARET_STRIDE) */
+    int caret_row;         /* cursor view-row (for active-line band) */
 } GFX;
 
 /* forward decl: color resolver defined below, used by blit helpers */
@@ -213,14 +214,18 @@ static int gfx_init(void **st, int cols, int rows) {
         fprintf(stderr, "gfx_init: FT_Init_FreeType failed\n");
         SDL_DestroyRenderer(g->ren); SDL_DestroyWindow(g->win); SDL_Quit(); free(g); return -1;
     }
-    /* default monospace; fall back to any if missing */
-    const char *font = "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf";
+    /* Prefer a modern humanist mono (Ubuntu Sans Mono) for cleaner glyph
+     * shapes + hinting; fall back to DejaVu if absent. (Spec §3: one mono.) */
+    const char *font = "/usr/share/fonts/truetype/ubuntu/UbuntuSansMono[wght].ttf";
     if (FT_New_Face(g->ft, font, 0, &g->face) != 0) {
-        font = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf";
+        font = "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf";
         if (FT_New_Face(g->ft, font, 0, &g->face) != 0) {
-            fprintf(stderr, "gfx_init: FT_New_Face failed for %s\n", font);
-            FT_Done_FreeType(g->ft); SDL_DestroyRenderer(g->ren);
-            SDL_DestroyWindow(g->win); SDL_Quit(); free(g); return -1;
+            font = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf";
+            if (FT_New_Face(g->ft, font, 0, &g->face) != 0) {
+                fprintf(stderr, "gfx_init: FT_New_Face failed for %s\n", font);
+                FT_Done_FreeType(g->ft); SDL_DestroyRenderer(g->ren);
+                SDL_DestroyWindow(g->win); SDL_Quit(); free(g); return -1;
+            }
         }
     }
     FT_Set_Pixel_Sizes(g->face, 0, FONT_PT);
@@ -294,10 +299,14 @@ static void gfx_draw_line(void *st, int row, const char *text, int len, int kind
     GFX *g = st;
     if (!g || !g->init_ok || row < 0 || row >= g->rows) return;
     int py = row * g->line_h;
-    gfx_fill(g, 0, py, g->cols * g->char_w, g->line_h, TOK_SURFACE);
+    /* Active-line band: the cursor's row gets a raised surface so the eye
+     * locks onto the working line (VS Code / Sublime pattern, spec §4). */
+    int band = (row == g->caret_row);
+    gfx_fill(g, 0, py, g->cols * g->char_w, g->line_h,
+             band ? TOK_SURFACE_3 : TOK_SURFACE);
     UIToken tok = (UIToken)gfx_kind_token(kind);
     int n = len < 0 ? (int)strlen(text ? text : "") : len;
-    int px0 = g->char_w * 5 + 2;   /* leave room for the gutter */
+    int px0 = g->char_w * 5 + 8;   /* gutter inset on the 4px grid (spec §4) */
 
 #ifdef WUBUPAD_WITH_SHAPE
     if (g->shape) {
@@ -335,6 +344,7 @@ static void gfx_draw_line(void *st, int row, const char *text, int len, int kind
 static void gfx_draw_caret(void *st, int row, int col) {
     GFX *g = st;
     if (!g || !g->init_ok) return;
+    g->caret_row = row;   /* remember for the active-line band */
     int x;
 #ifdef WUBUPAD_WITH_SHAPE
     if (g->shape && g->caret_x && row >= 0 && row < g->rows) {
@@ -361,39 +371,63 @@ static void gfx_draw_gutter(void *st, int row, int line_no) {
     if (!g || !g->init_ok || row < 0 || row >= g->rows) return;
     if (line_no <= 0) return;   /* past end of buffer */
     int py = row * g->line_h;
-    gfx_fill(g, 0, py, g->char_w * 5, g->line_h, TOK_SURFACE_ALT);
+    /* Gutter sits on SURFACE_2; the active line's gutter rises to SURFACE_3
+     * so the band reads as one continuous strip. */
+    int band = (row == g->caret_row);
+    gfx_fill(g, 0, py, g->char_w * 5, g->line_h,
+             band ? TOK_SURFACE_3 : TOK_SURFACE_2);
+    /* 1px divider between gutter and text (spec §1 border role). */
+    gfx_fill(g, g->char_w * 5 - 1, py, 1, g->line_h, TOK_BORDER);
     char buf[16];
     int n = snprintf(buf, sizeof buf, "%d", line_no);
-    int px = 2;
+    int px = 8;   /* 4px-grid inset */
     for (int i = 0; i < n && i < 5; i++)
-        gfx_draw_glyph(g, (unsigned char)buf[i], px + i * g->char_w, py, TOK_LINE_NO);
+        gfx_draw_glyph(g, (unsigned char)buf[i], px + i * g->char_w, py,
+                       band ? TOK_TEXT_DIM : TOK_TEXT_DIM);
 }
 
 static void gfx_draw_tab(void *st, int tab_row, int index,
                          const char *name, int active, int dirty) {
     GFX *g = st;
     if (!g || !g->init_ok || tab_row != 0) return;
-    int x = index * g->char_w * 20;       /* each tab ~20 chars wide */
-    int w = g->char_w * 20;
-    gfx_fill(g, x, 0, w, g->line_h, active ? TOK_ACCENT : TOK_SURFACE_ALT);
-    char buf[20];
-    int n = snprintf(buf, sizeof buf, active ? "[%s%s]" : " %s%s ",
-                     name ? name : "", dirty ? "*" : "");
-    int px = x + 4;
-    for (int i = 0; i < n && px < x + w - 4; i++)
-        gfx_draw_glyph(g, (unsigned char)buf[i], px + i * g->char_w, 0,
-                       active ? TOK_TEXT : TOK_LINE_NO);
+    /* Tab = a neutral segment on SURFACE_2; the ACTIVE tab rises to SURFACE_3
+     * and gets a 2px accent underline. No bright blue fill (spec §5: one
+     * accent used for emphasis only). Inactive tabs use dim text. */
+    int tw = g->char_w * 22;
+    int w = tw;
+    gfx_fill(g, index * tw, 0, w, g->line_h, active ? TOK_SURFACE_3 : TOK_SURFACE_2);
+    /* 1px divider to the right of each tab. */
+    gfx_fill(g, index * tw + w - 1, 0, 1, g->line_h, TOK_BORDER);
+    if (active)
+        gfx_fill(g, index * tw, g->line_h - 2, w, 2, TOK_ACCENT);  /* accent underline */
+
+    /* label: dirty shows an accent dot (not just '*') + name; active text is
+     * primary, inactive is dim. Don't rely on color alone (spec §1/§5). */
+    int tx = index * tw + 12;
+    int ty = (g->line_h - g->char_w) / 2;   /* center mono glyph in tab */
+    if (dirty) {
+        gfx_fill(g, tx, ty + 2, 6, 6, TOK_ACCENT);   /* dirty dot */
+        tx += 12;
+    }
+    char buf[32];
+    int n = snprintf(buf, sizeof buf, "%s%s", name ? name : "",
+                     dirty ? "" : "");
+    for (int i = 0; i < n && tx < index * tw + w - 8; i++)
+        gfx_draw_glyph(g, (unsigned char)buf[i], tx + i * g->char_w, 0,
+                       active ? TOK_TEXT : TOK_TEXT_DIM);
 }
 
 static void gfx_draw_status(void *st, int row, const char *text) {
     GFX *g = st;
     if (!g || !g->init_ok || row != g->rows - 1) return;
     int py = row * g->line_h;
-    gfx_fill(g, 0, py, g->cols * g->char_w, g->line_h, TOK_SURFACE_ALT);
+    /* Quiet chrome band on SURFACE_2, 1px top border, dim text (spec §6). */
+    gfx_fill(g, 0, py, g->cols * g->char_w, g->line_h, TOK_SURFACE_2);
+    gfx_fill(g, 0, py, g->cols * g->char_w, 1, TOK_BORDER);
     int n = (int)strlen(text ? text : "");
-    int px = 4;
+    int px = 12;   /* 4px-grid inset */
     for (int i = 0; i < n; i++)
-        gfx_draw_glyph(g, (unsigned char)text[i], px + i * g->char_w, py, TOK_TEXT);
+        gfx_draw_glyph(g, (unsigned char)text[i], px + i * g->char_w, py, TOK_TEXT_DIM);
 }
 
 static void gfx_set_theme(void *st, int dark) {
@@ -409,13 +443,14 @@ static void gfx_draw_symbols(void *st, int row, const char *name, int line_no) {
     int panel_w = 24 * g->char_w;           /* panel width */
     int x0 = g->cols * g->char_w - panel_w;
     int py = row * g->line_h;
-    gfx_fill(g, x0, py, panel_w, g->line_h, TOK_SURFACE_ALT);
+    gfx_fill(g, x0, py, panel_w, g->line_h, TOK_SURFACE_2);
+    gfx_fill(g, x0, py, 1, g->line_h, TOK_BORDER);
     char buf[40];
     snprintf(buf, sizeof buf, "%s : L%d", name ? name : "", line_no + 1);
     int n = (int)strlen(buf);
-    int px = g->cols * g->char_w - panel_w + 4;
+    int px = x0 + 8;
     for (int i = 0; i < n; i++)
-        gfx_draw_glyph(g, (unsigned char)buf[i], px + i * g->char_w, py, TOK_COMMENT);
+        gfx_draw_glyph(g, (unsigned char)buf[i], px + i * g->char_w, py, TOK_TEXT_DIM);
 }
 
 static void gfx_present(void *st) {
@@ -492,11 +527,42 @@ static void gfx_resize(void *st, int *cols, int *rows) {
     *cols = g->cols; *rows = g->rows;
 }
 
+/* vtable capture shim: maps the vtable signature onto ui_gfx_capture.
+ * Defined before ui_gfx_backend() so the vtable can reference it. */
+static int gfx_capture_shim(void *st, unsigned char **rgba, int *w, int *h) {
+    return ui_gfx_capture(st, rgba, w, h);
+}
+
 const UI_Backend *ui_gfx_backend(void) {
     static const UI_Backend b = {
         gfx_init, gfx_destroy, gfx_draw_line, gfx_draw_caret,
         gfx_present, gfx_get_key, gfx_resize,
         gfx_chrome_rows, gfx_draw_gutter, gfx_draw_tab,
-        gfx_draw_status, gfx_draw_symbols, gfx_set_theme};
+        gfx_draw_status, gfx_draw_symbols, gfx_set_theme,
+        gfx_capture_shim};
     return &b;
+}
+
+/* --- headless capture (no live window needed) ----------------------------
+ * Render one frame and read the SDL framebuffer back into an RGBA buffer the
+ * caller owns. Used by the screenshot tool to produce pixel-faithful PNGs
+ * without ever mapping a window to a display. Returns 0 on success. */
+int ui_gfx_capture(void *st, unsigned char **rgba, int *w, int *h) {
+    GFX *g = st;
+    if (!g || !g->init_ok || !rgba || !w || !h) return -1;
+    int ww, wh;
+    SDL_GetWindowSize(g->win, &ww, &wh);
+    /* force a present so the back buffer holds the last drawn frame */
+    SDL_RenderPresent(g->ren);
+    unsigned char *pix = malloc((size_t)ww * wh * 4);
+    if (!pix) return -1;
+    /* SDL_FRAMEBUFFER is RGBA in memory order [R,G,B,A]; the encoder expects
+     * exactly that, so no channel swap is needed. */
+    if (SDL_RenderReadPixels(g->ren, NULL, SDL_PIXELFORMAT_RGBA32,
+                             pix, ww * 4) != 0) {
+        free(pix);
+        return -1;
+    }
+    *rgba = pix; *w = ww; *h = wh;
+    return 0;
 }

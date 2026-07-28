@@ -48,6 +48,10 @@ typedef struct {
     void (*draw_symbols)(void *bstate, int row, const char *name, int line_no);
     /* apply a theme variant (1=dark, 0=light). */
     void (*set_theme)(void *bstate, int dark);
+    /* --- optional headless capture (gfx backend only); NULL = unsupported --- */
+    /* Render the current frame and hand back a malloc'd RGBA buffer (caller
+     * frees) sized *w x *h. Returns 0 on success, -1 if unsupported. */
+    int  (*capture)(void *bstate, unsigned char **rgba, int *w, int *h);
 } UI_Backend;
 
 /* Symbolic keys (when *key is set, *ch may still carry printable bytes). */
@@ -194,5 +198,11 @@ void ui_apply(UI *ui, char ch, int key);
  * Returns 0 to continue, -1 if quit was requested. Used by tests and by
  * front-ends that own their own event pump. */
 int ui_step(UI *ui, const char *lang);
+
+/* Headless frame capture (gfx backend only): render one frame and return a
+ * malloc'd RGBA buffer (caller frees) sized *w x *h. Returns 0 on success,
+ * -1 if the active backend has no capture path. Lets screenshot tools produce
+ * pixel-faithful PNGs without mapping a window to a display. */
+int ui_capture(UI *ui, unsigned char **rgba, int *w, int *h);
 
 #endif /* WUBUPAD_UI_H */

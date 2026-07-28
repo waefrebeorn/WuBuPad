@@ -28,8 +28,6 @@ const UI_Backend *ui_headless_backend(void);
 /* declared in ui_tty.c */
 const UI_Backend *ui_tty_backend(void);
 int ui__tty_enable_raw(void *bstate);
-/* declared in ui_gfx.c */
-const UI_Backend *ui_gfx_backend(void);
 
 struct UI {
     Doc *doc;
@@ -371,6 +369,25 @@ int ui_run(UI *ui, const char *lang) {
     if (!ui) return -1;
     while (ui_step(ui, lang) == 0) { /* loop */ }
     return 0;
+}
+
+/* Headless frame capture: render a frame, then read the backend's pixels.
+ * Only the gfx (SDL2) backend implements capture; others return -1. */
+int ui_capture(UI *ui, unsigned char **rgba, int *w, int *h) {
+    if (!ui || !rgba || !w || !h) return -1;
+    /* Sync the controller's viewport to the backend's REAL window size so
+     * chrome rows (status bar, tab strip) land on-screen. (In the live app a
+     * resize event does this; headless capture has no event loop.) */
+    if (ui->be && ui->be->resize) {
+        int c = 0, r = 0;
+        ui->be->resize(ui->bstate, &c, &r);
+        if (c > 0 && r > 0) { ui->cols = c; ui->rows = r; }
+    }
+    /* ensure a fresh frame is in the back buffer */
+    ui_render(ui, NULL);
+    if (ui->be && ui->be->capture)
+        return ui->be->capture(ui->bstate, rgba, w, h);
+    return -1;
 }
 
 /* --- find / replace (Phase B): bind the DONE search engine to the Doc --- */
