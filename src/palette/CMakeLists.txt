@@ -1,0 +1,7 @@
+# wubupad command palette (Cmd-Shift-P)
+add_library(wubupad_palette STATIC palette.c)
+target_include_directories(wubupad_palette PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src/command ${CMAKE_SOURCE_DIR}/src/fuzzy)
+target_link_libraries(wubupad_palette PUBLIC wubupad_command wubupad_fuzzy)
+add_executable(test_palette test_palette.c)
+target_link_libraries(test_palette PRIVATE wubupad_palette)
+add_test(NAME palette COMMAND test_palette)

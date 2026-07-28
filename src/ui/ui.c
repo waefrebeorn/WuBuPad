@@ -9,6 +9,7 @@
 #include "ui_find.h"
 #include "ui_theme.h"
 #include "ui_macro.h"
+#include "ui_atom.h"
 #include "complete.h"
 #include "docs.h"
 #include <stdlib.h>
@@ -50,6 +51,9 @@ struct UI {
     size_t comp_n;       /* candidate count */
     int    comp_idx;     /* index of currently-shown candidate (-1 = none) */
     int    show_symbols; /* function-list panel toggle */
+    /* --- Atom subsystem (package-driven) --- */
+    int    show_tree;       /* project tree view toggle */
+    int    palette_active;  /* command palette open (mirrors ui_atom state) */
 };
 
 UI *ui_create(Doc *doc, const UI_Backend *be, int cols, int rows) {
@@ -64,6 +68,7 @@ UI *ui_create(Doc *doc, const UI_Backend *be, int cols, int rows) {
     ui->find = ui_find_create();
     ui->theme = ui_theme_create();
     if (ui->theme) ui_theme_load(ui->theme);
+    ui_atom_init(ui);   /* Atom: registry + palette + package discovery */
     if (be->init(&ui->bstate, ui->cols, ui->rows) != 0) {
         ui_find_free(ui->find); ui_theme_free(ui->theme); free(ui); return NULL;
     }
@@ -74,6 +79,7 @@ void ui_free(UI *ui) {
     if (!ui) return;
     if (ui->find) ui_find_free(ui->find);
     if (ui->theme) ui_theme_free(ui->theme);
+    ui_atom_free(ui);   /* Atom teardown */
     ui_complete_reset(ui);
     if (ui->be && ui->be->destroy) ui->be->destroy(ui->bstate);
     free(ui);
@@ -308,6 +314,8 @@ void ui_render(UI *ui, const char *lang) {
  * event into the attached macro when recording. */
 void ui_apply(UI *ui, char ch, int key) {
     if (!ui) return;
+    /* Atom: while the command palette is open, it owns all keystrokes. */
+    if (ui_palette_open(ui)) { ui_palette_feed(ui, ch, key); return; }
     /* any edit other than cycling completion cancels an active session */
     if (key != UI_KEY_COMPLETE) ui_complete_reset(ui);
     switch (key) {
@@ -334,6 +342,8 @@ void ui_apply(UI *ui, char ch, int key) {
         case UI_KEY_COMPLETE: ui_complete(ui);   break;
         case UI_KEY_FOLD:     ui_fold_current_block(ui); break;
         case UI_KEY_SYMBOLS:  ui_toggle_symbols(ui); break;
+        case UI_KEY_PALETTE:  ui_open_palette(ui); break;
+        case UI_KEY_TREE:     ui->show_tree = !ui->show_tree; break;
         default:
             if (ch == '\n') ui_newline(ui);
             else if (ch) { char buf[2] = {ch,0}; ui_insert_text(ui, buf, 1); }
@@ -653,6 +663,7 @@ void ui_function_list_string(const DocSymbol *syms, size_t n, char *buf, size_t 
 }
 int ui_symbols_visible(const UI *ui) { return ui ? ui->show_symbols : 0; }
 void ui_toggle_symbols(UI *ui) { if (ui) ui->show_symbols = !ui->show_symbols; }
+void ui_toggle_tree(UI *ui) { if (ui) ui->show_tree = !ui->show_tree; }
 
 /* These live here because UI is a complete type only in this TU. They reach
  * into the headless backend's state, which ui_headless.c owns. We keep the

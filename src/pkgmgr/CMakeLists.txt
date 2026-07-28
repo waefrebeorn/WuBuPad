@@ -1,0 +1,7 @@
+# wubupad package manager (Atom packages)
+add_library(wubupad_pkgmgr STATIC pkgmgr.c)
+target_include_directories(wubupad_pkgmgr PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src/command)
+target_link_libraries(wubupad_pkgmgr PUBLIC wubupad_core wubupad_command)
+add_executable(test_pkgmgr test_pkgmgr.c)
+target_link_libraries(test_pkgmgr PRIVATE wubupad_pkgmgr)
+add_test(NAME pkgmgr COMMAND test_pkgmgr)

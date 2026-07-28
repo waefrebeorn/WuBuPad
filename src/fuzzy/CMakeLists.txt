@@ -1,0 +1,6 @@
+# wubupad fuzzy finder (Atom Cmd-T / Cmd-P)
+add_library(wubupad_fuzzy STATIC fuzzy.c)
+target_include_directories(wubupad_fuzzy PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+add_executable(test_fuzzy test_fuzzy.c)
+target_link_libraries(test_fuzzy PRIVATE wubupad_fuzzy)
+add_test(NAME fuzzy COMMAND test_fuzzy)

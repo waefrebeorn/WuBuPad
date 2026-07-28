@@ -15,6 +15,7 @@ typedef struct Doc Doc;   /* opaque; editor core */
 typedef struct Docs Docs; /* opaque; multi-doc session */
 typedef struct UI  UI;
 typedef struct UIMacro UIMacro; /* opaque; input macro */
+typedef struct CommandRegistry CommandRegistry; /* Atom spine (opaque) */
 
 /* A backend draws spans and reports input. Implemented per-platform. */
 typedef struct {
@@ -66,7 +67,11 @@ enum {
     UI_KEY_REPLAY,       /* replay last macro */
     UI_KEY_COMPLETE,      /* word completion (Ctrl-Space) */
     UI_KEY_FOLD,          /* fold current code block (Ctrl-Shift-F) */
-    UI_KEY_SYMBOLS        /* toggle function-list panel (Ctrl-Shift-L) */
+    UI_KEY_SYMBOLS,       /* toggle function-list panel (Ctrl-Shift-L) */
+    UI_KEY_PALETTE,       /* command palette (Ctrl-Shift-P) -- Atom spine */
+    UI_KEY_SNIPPET,       /* expand snippet at cursor (Tab, when trigger) */
+    UI_KEY_TREE,          /* toggle project tree view */
+    UI_KEY_PREVIEW        /* toggle markdown preview */
 };
 
 /* Create a UI bound to `doc` and backend `be`. cols/rows seed the viewport. */
@@ -153,10 +158,25 @@ void ui_function_list_string(const DocSymbol *syms, size_t n, char *buf, size_t 
 int  ui_symbols_visible(const UI *ui);
 void ui_toggle_symbols(UI *ui);
 
+/* Toggle the project tree view (Atom "tree-view" package). */
+void ui_toggle_tree(UI *ui);
+/* Open the command palette (Ctrl-Shift-P). Declared here so ui.c / tests
+ * can call it; implemented in ui_atom.c. */
+void ui_open_palette(UI *ui);
+
 /* Status string buffer builder (cursor Ln/Col, lang, dirty + find count). */
 void ui_status_string(const UI *ui, const char *lang, char *buf, size_t n);
 
-/* --- render --- */
+/* --- Atom subsystem (package-driven, hackable) --- */
+/* The command registry + palette are the Atom spine. ui_create() builds them
+ * and discovers packages under ~/.wubupad/packages. Built-in editor commands
+ * are registered so the palette (Ctrl-Shift-P) lists + runs them. */
+CommandRegistry *ui_command_registry(const UI *ui);   /* NULL-safe */
+/* True while the command palette is open (keystrokes route to it). */
+int  ui_palette_open(const UI *ui);
+/* Render the palette overlay into `buf` (one candidate per line, highlighted
+ * marked with '>'). Returns line count. Caller passes a wide-enough buffer. */
+size_t ui_palette_render(const UI *ui, char *buf, size_t bufn);
 /* Redraw the visible viewport. `lang` selects the lexer for highlighting
  * (NULL = plain). Draws cols*rows lines starting at the scroll row. */
 void ui_render(UI *ui, const char *lang);

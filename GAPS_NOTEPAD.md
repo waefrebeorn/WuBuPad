@@ -60,9 +60,29 @@ module plan.
 - Session save/restore: Ctrl+Shift+S save, restore on launch (WUBUOS_RESTORE=1).
 - Plugin architecture: `wuos_plugin.h` stable C ABI (v1) + `dlopen` loader (`plugin.c`) scanning `~/.wubuos/plugins/*.so`; sample plugin builds to `sample_plugin.so`; Ctrl+Shift+K runs the next loaded plugin (host log + exec toast). Headless `test_plugin_abi` + `test_view` plugin block verify load→init→exec.
 
-## Remaining gap (engine work, not GUI)
-- _(none)_ — Plugin ABI/loader is now CLOSED. Everything on the Notepad++ list
-  is DONE (engine) + CLOSED (GUI shell).
+## Atom absorption (package-driven, hackable editor)
+Atom is sunsetting; WuBuPad now absorbs its defining capabilities as real,
+opaque, headless-tested modules (no third-party deps), wired into the `ui`
+controller via `src/ui/ui_atom.c`:
+
+| Atom feature            | Module (`src/...`)            | Status |
+|-------------------------|-------------------------------|--------|
+| Command registry (spine) | `command/`                 | CLOSED (named commands: `editor:toggle-theme`, etc.) |
+| Command palette (Cmd-Shift-P) | `palette/` + `fuzzy/` | CLOSED (fuzzy filter over registry; runs chosen cmd) |
+| Fuzzy finder (Cmd-T/P)  | `fuzzy/`                     | CLOSED (subsequence scorer, word-boundary bonus) |
+| Package manager         | `pkgmgr/`                    | CLOSED (scans `~/.wubupad/packages/*`, parses package.json, dlopen C-ABI plugins, registers manifest cmds) |
+| Tree view + git status  | `treeview/`                  | CLOSED (recursive dir walk; git `--porcelain` status by basename, nested files) |
+| Snippets                | `snippet/`                   | CLOSED (`${1:default}` tabstops + mirror fields, Tab cycles) |
+| Multiple cursors        | `multicursor/`               | CLOSED (parallel insert across N carets) |
+| Auto-indent / smart typing | `autoindent/`             | CLOSED (brace/paren-aware newline + indent) |
+| Minimap                 | `minimap/`                   | CLOSED (downsampled lit-row overview) |
+| Markdown preview        | `mdpreview/`                 | CLOSED (MD->HTML: headings, bold/italic/code, lists, quote, hr, fenced code, escaping) |
+
+Wiring: `ui_create()` builds the registry + palette + discovers packages;
+`ui_apply()` routes all keystrokes to the palette while it is open; built-in
+editor commands are registered so the palette lists + runs them. `UI_KEY_PALETTE`
+(Ctrl-Shift-P) opens it. Each module ships a headless test; `test_atom` drives
+the palette end-to-end through the UI controller. All 22 ctest suites pass.
 
 
 What remains is the **UX layer** on top: the GUI itself (tabs bar, find box,

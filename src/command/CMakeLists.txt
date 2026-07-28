@@ -1,0 +1,6 @@
+# wubupad command registry (Atom spine)
+add_library(wubupad_command STATIC command.c)
+target_include_directories(wubupad_command PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+add_executable(test_command test_command.c)
+target_link_libraries(test_command PRIVATE wubupad_command)
+add_test(NAME command COMMAND test_command)

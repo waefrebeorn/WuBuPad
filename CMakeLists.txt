@@ -70,9 +70,11 @@ endif()
 # Headless UI lib: ui.c + headless + tty backends (no SDL2/Freetype).
 add_library(wubupad_ui STATIC
   src/ui/ui.c src/ui/ui_headless.c src/ui/ui_tty.c
-  src/ui/ui_find.c src/ui/ui_theme.c src/ui/ui_macro.c)
-target_include_directories(wubupad_ui PUBLIC src)
-target_link_libraries(wubupad_ui PUBLIC wubupad_core)
+  src/ui/ui_find.c src/ui/ui_theme.c src/ui/ui_macro.c src/ui/ui_atom.c)
+target_include_directories(wubupad_ui PUBLIC src
+  ${CMAKE_SOURCE_DIR}/src/command ${CMAKE_SOURCE_DIR}/src/fuzzy
+  ${CMAKE_SOURCE_DIR}/src/palette ${CMAKE_SOURCE_DIR}/src/pkgmgr)
+target_link_libraries(wubupad_ui PUBLIC wubupad_core wubupad_atom)
 
 # --- Text shaping (HarfBuzz + FriBidi) -- optional, gates wubushape ---
 find_package(PkgConfig QUIET)
@@ -106,13 +108,47 @@ if(WUBUPAD_WITH_GFX)
   target_link_libraries(wubupad_gfx PUBLIC wubupad_ui wubushape SDL2::SDL2 Freetype::Freetype)
 endif()
 
+# === Atom absorption: package-driven, hackable editor subsystem ===
+# Each feature is an opaque module (command registry, fuzzy finder, palette,
+# package manager, tree view, snippets, multi-cursor, auto-indent, minimap,
+# markdown preview). They are wired into the UI controller in src/ui/ui.c.
+add_subdirectory(src/command)
+add_subdirectory(src/fuzzy)
+add_subdirectory(src/palette)
+add_subdirectory(src/pkgmgr)
+add_subdirectory(src/treeview)
+add_subdirectory(src/snippet)
+add_subdirectory(src/multicursor)
+add_subdirectory(src/autoindent)
+add_subdirectory(src/minimap)
+add_subdirectory(src/mdpreview)
+
+# Aggregate lib so front-ends link the whole Atom layer in one go.
+add_library(wubupad_atom STATIC
+  src/command/command.c src/fuzzy/fuzzy.c src/palette/palette.c
+  src/pkgmgr/pkgmgr.c src/treeview/treeview.c src/snippet/snippet.c
+  src/multicursor/multicursor.c src/autoindent/autoindent.c
+  src/minimap/minimap.c src/mdpreview/mdpreview.c)
+target_include_directories(wubupad_atom PUBLIC
+  src/command src/fuzzy src/palette src/pkgmgr src/treeview
+  src/snippet src/multicursor src/autoindent src/minimap src/mdpreview)
+target_link_libraries(wubupad_atom PUBLIC
+  wubupad_core wubupad_command wubupad_fuzzy wubupad_palette
+  wubupad_pkgmgr wubupad_treeview wubupad_snippet wubupad_multicursor
+  wubupad_autoindent wubupad_minimap wubupad_mdpreview)
+
 # wubuOS-facing CLI: NDJSON in -> NDJSON out, plus an interactive TUI/gfx mode.
 add_executable(wubupad apps/wubupad/main.c)
 if(WUBUPAD_WITH_GFX)
-  target_link_libraries(wubupad PRIVATE wubupad_agent wubupad_ui wubupad_gfx SDL2::SDL2 Freetype::Freetype)
+  target_link_libraries(wubupad PRIVATE wubupad_agent wubupad_ui wubupad_gfx wubupad_atom SDL2::SDL2 Freetype::Freetype)
 else()
-  target_link_libraries(wubupad PRIVATE wubupad_agent wubupad_ui)
+  target_link_libraries(wubupad PRIVATE wubupad_agent wubupad_ui wubupad_atom)
 endif()
+
+# Acceptance test for the Atom subsystem (command palette driving the UI).
+add_executable(test_atom tests/test_atom.c)
+target_link_libraries(test_atom PRIVATE wubupad_ui)
+add_test(NAME atom COMMAND test_atom)
 
 # Acceptance test for folding (Phase D).
 add_executable(test_fold tests/test_fold.c)
