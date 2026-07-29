@@ -27,6 +27,7 @@ module plan.
 | Multi-language syntax highlighting | `src/lex` (C + JSON done) | PARTIAL |
 | Undo/redo (linear + grouped) | `src/doc` undo stack | DONE (linear LIFO, tested) |
 | Cursor + selection + edit ops | `src/doc` cursor | DONE (byte-level, tested) |
+| Clipboard (cut/copy/paste/paste-plain/select-all) | `src/ui` clipboard + SDL system clipboard | **CLOSED** (SDL2 clipboard wired in gfx backend; Ctrl+X/C/V/Shift+V/A + Ctrl+A) |
 | Tabs / multi-document | session mgr (`src/docs`) | DONE (headless); **GUI tab bar = CLOSED** (wubuos shell + Editor multi-doc) |
 | Code folding | lexer fold levels + view | **CLOSED** (wubuos: Ctrl+Shift+F folds brace block via `lex_folds`; hidden lines skipped + ▾ marker) |
 | Auto-completion | symbol index from lexer | **CLOSED** (wubuos: builtin C words + doc-identifier scan) |

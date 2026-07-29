@@ -75,7 +75,12 @@ enum {
     UI_KEY_PALETTE,       /* command palette (Ctrl-Shift-P) -- Atom spine */
     UI_KEY_SNIPPET,       /* expand snippet at cursor (Tab, when trigger) */
     UI_KEY_TREE,          /* toggle project tree view */
-    UI_KEY_PREVIEW        /* toggle markdown preview */
+    UI_KEY_PREVIEW,       /* toggle markdown preview */
+    UI_KEY_CUT,           /* Ctrl+X */
+    UI_KEY_COPY,          /* Ctrl+C */
+    UI_KEY_PASTE,         /* Ctrl+V */
+    UI_KEY_PASTE_PLAIN,   /* Ctrl+Shift+V */
+    UI_KEY_SELECT_ALL     /* Ctrl+A */
 };
 
 /* Create a UI bound to `doc` and backend `be`. cols/rows seed the viewport. */

@@ -95,13 +95,15 @@ static int tty_get_key(void *st, char *ch, int *key) {
     switch (buf[0]) {
         case 127: case 8: *key = UI_KEY_BACKSPACE; break;
         case 10:  case 13: *key = UI_KEY_ENTER;     break;
-        case 1:   *key = UI_KEY_HOME;  break;  /* ctrl-a */
+        case 1:   *key = UI_KEY_HOME;  break;  /* ctrl-a (also select-all in TTY — no menu) */
+        case 3:   *key = UI_KEY_COPY; break;  /* ctrl-c */
         case 5:   *key = UI_KEY_END;   break;  /* ctrl-e */
         case 11:  *key = UI_KEY_PGUP;  break;  /* ctrl-k (rough) */
         case 21:  *key = UI_KEY_PGDOWN;break;  /* ctrl-u */
+        case 22:  *key = UI_KEY_PASTE; break; /* ctrl-v */
+        case 24:  *key = UI_KEY_COLMODE;break; /* ctrl-x column mode */
         case 25:  *key = UI_KEY_REDO;  break;  /* ctrl-y */
         case 26:  *key = UI_KEY_UNDO;  break;  /* ctrl-z */
-        case 24:  *key = UI_KEY_COLMODE;break; /* ctrl-x column mode */
         case 7:   *key = UI_KEY_EOL;    break; /* ctrl-g EOL convert */
         case 2:   *key = UI_KEY_MACRO;  break; /* ctrl-b macro toggle */
         case 14:  *key = UI_KEY_REPLAY; break; /* ctrl-n replay macro */

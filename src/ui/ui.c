@@ -52,6 +52,8 @@ struct UI {
     /* --- Atom subsystem (package-driven) --- */
     int    show_tree;       /* project tree view toggle */
     int    palette_active;  /* command palette open (mirrors ui_atom state) */
+    /* --- clipboard --- */
+    char  *clipboard;      /* last copied/cut text (malloc'd, NULL = empty) */
 };
 
 UI *ui_create(Doc *doc, const UI_Backend *be, int cols, int rows) {
@@ -178,6 +180,42 @@ void ui_page_down(UI *ui) {
 }
 void ui_undo(UI *ui) { if (ui && doc_can_undo(ui->doc)) doc_undo(ui->doc); }
 void ui_redo(UI *ui) { if (ui && doc_can_redo(ui->doc)) doc_redo(ui->doc); }
+
+/* --- clipboard (uses SDL clipboard in gfx backend; term clipboard in tty) --- */
+static void ui_free_clipboard(UI *ui) {
+    if (ui && ui->clipboard) { free(ui->clipboard); ui->clipboard = NULL; }
+}
+void ui_copy(UI *ui) {
+    if (!ui) return;
+    ui_free_clipboard(ui);
+    if (doc_has_selection(ui->doc)) {
+        size_t s = doc_sel_start(ui->doc), e = doc_sel_end(ui->doc);
+        char *t = doc_text(ui->doc);
+        ui->clipboard = malloc(e - s + 1);
+        if (ui->clipboard) { memcpy(ui->clipboard, t + s, e - s); ui->clipboard[e - s] = 0; }
+        free(t);
+    }
+}
+void ui_cut(UI *ui) {
+    if (!ui) return;
+    ui_copy(ui);
+    if (ui->clipboard && doc_has_selection(ui->doc)) {
+        size_t s = doc_sel_start(ui->doc), e = doc_sel_end(ui->doc);
+        doc_delete(ui->doc, s, e - s);
+        doc_set_cursor(ui->doc, s);
+        doc_clear_selection(ui->doc);
+    }
+}
+void ui_paste(UI *ui) {
+    if (!ui || !ui->clipboard || !ui->clipboard[0]) return;
+    size_t len = strlen(ui->clipboard);
+    doc_type(ui->doc, ui->clipboard, len);
+}
+void ui_paste_plain(UI *ui) { ui_paste(ui); }  /* same as paste (no rich text to strip) */
+void ui_select_all(UI *ui) {
+    if (!ui) return;
+    doc_set_selection(ui->doc, 0, doc_length(ui->doc));
+}
 
 void ui_scroll_to_cursor(UI *ui) {
     if (!ui) return;
@@ -342,6 +380,11 @@ void ui_apply(UI *ui, char ch, int key) {
         case UI_KEY_SYMBOLS:  ui_toggle_symbols(ui); break;
         case UI_KEY_PALETTE:  ui_open_palette(ui); break;
         case UI_KEY_TREE:     ui->show_tree = !ui->show_tree; break;
+        case UI_KEY_CUT:      ui_cut(ui); break;
+        case UI_KEY_COPY:     ui_copy(ui); break;
+        case UI_KEY_PASTE:    ui_paste(ui); break;
+        case UI_KEY_PASTE_PLAIN: ui_paste_plain(ui); break;
+        case UI_KEY_SELECT_ALL: ui_select_all(ui); break;
         default:
             if (ch == '\n') ui_newline(ui);
             else if (ch) { char buf[2] = {ch,0}; ui_insert_text(ui, buf, 1); }

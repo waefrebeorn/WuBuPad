@@ -482,9 +482,10 @@ static int gfx_get_key(void *st, char *ch, int *key) {
             case SDLK_y: *key = UI_KEY_REDO; return 0;
             case SDLK_f: *key = (mod & KMOD_SHIFT) ? UI_KEY_FOLD : UI_KEY_FIND; return 0;
             case SDLK_l: *key = (mod & KMOD_SHIFT) ? UI_KEY_SYMBOLS : UI_KEY_NONE; return 0;
-            case SDLK_a: *key = UI_KEY_HOME; return 0;
-            case SDLK_t: *key = (mod & KMOD_SHIFT) ? UI_KEY_PREVTAB : UI_KEY_NEXTTAB; return 0;
-            case SDLK_c: *key = (mod & KMOD_SHIFT) ? UI_KEY_COLMODE : UI_KEY_NONE; return 0;
+            case SDLK_a: *key = UI_KEY_SELECT_ALL; return 0;
+            case SDLK_x: *key = UI_KEY_CUT; return 0;
+            case SDLK_v: *key = (mod & KMOD_SHIFT) ? UI_KEY_PASTE_PLAIN : UI_KEY_PASTE; return 0;
+            case SDLK_c: *key = (mod & KMOD_SHIFT) ? UI_KEY_COLMODE : UI_KEY_COPY; return 0;
             case SDLK_e: *key = (mod & KMOD_SHIFT) ? UI_KEY_EOL : UI_KEY_END; return 0;
             case SDLK_r: *key = (mod & KMOD_SHIFT) ? UI_KEY_MACRO : UI_KEY_NONE; return 0;
             case SDLK_p: *key = (mod & KMOD_SHIFT) ? UI_KEY_REPLAY : UI_KEY_NONE; return 0;

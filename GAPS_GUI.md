@@ -14,6 +14,8 @@ clean-C11 strategy to close them without forking a toolkit.
 | File dialogs, menus, ribbons | N/A |
 | Accessibility (IME, a11y) | N/A |
 | Theming / HiDPI | N/A |
+| **SDL2/FreeType graphics backend** | CLOSED (headless + live window; `shot` headless screenshot tool, `ui_capture` vtable, SDL2 clipboard wired for cut/copy/paste) |
+| **Notepad++ keyboard parity** | CLOSED (Ctrl+X/C/V/Shift+V/A cut/copy/paste/paste-plain/select-all wired in both gfx and tty backends; menu bar handles cut/copy/paste/select-all via SDL clipboard) |
 
 ## C11 strategy (no external GUI fork)
 Keep the **domain core** GUI-free and unit-tested (already done for the editor:
