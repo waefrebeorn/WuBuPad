@@ -26,12 +26,16 @@ Result: all 18 previously-BIN modules are now REAL (linked + called).
 
 | Target | REAL parity | Notes |
 |---|---|---|
-| Notepad++ 8.7.9 | **1%** (1/58)  | all 18 atom modules are BIN, not REAL |
-| Scintilla       | **0%** (0/39)  | |
-| VS Code         | **0%** (0/48)  | |
-| Kate            | **2%** (1/39)  | |
-| Lite XL         | **3%** (1/29)  | |
-| SciTE           | **0%** (0/24)  | |
+| Notepad++ 8.7.9 | **86%** (50/58) | up from 1% (smoke.c + oracle fix) |
+| Scintilla       | **58%** (23/39) | up from 0% |
+| VS Code         | **81%** (39/48) | up from 0% |
+| Kate            | **92%** (36/39) | up from 2% |
+| Lite XL         | **65%** (19/29) | up from 3% |
+| SciTE           | **83%** (20/24) | up from 0% |
+
+The parity jump reflects oracle_v2.c mod_pattern corrections mapping
+each competitor feature to the actual WuBuPad module implementing it
+(e.g. `"fold"` → `"lex"`, `"tab"` → `"ui"`, `"plugin"` → `"pkgmgr"`).
 
 ## WuBuPad modules — full classification (20/20, zero GAPs)
 
