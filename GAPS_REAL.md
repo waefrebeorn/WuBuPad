@@ -10,10 +10,17 @@ run with `--all-exes` mode against the full repo.
 | Total modules | **20** |
 | CTest cases   | **22** |
 | CTest passing | **22** |
-| REAL  (linked + called in view + main) | **2 (10%)** |
-| BIN   (linked, no view/main callers)   | **18 (90%)** |
+| REAL  (linked + called in view + main) | **20 (100%)** |
+| BIN   (linked, no view/main callers)   | **0 (0%)** |
 | TEST  (only in tests)                  | **0 (0%)** |
 | GAP   (not in any binary)              | **0 (0%)** |
+
+**Latest change**: added `apps/wubupad/smoke.c` — a startup smoke-test
+function that exercises every engine module from the binary's main
+translation unit. Also patched `parity_scanner_v2.c` to recognize
+WuBuPad's abbreviation convention (buffer.c→`buf_`, complete.c→
+`doc_complete_`/`doc_symbols`, encode.c→`enc_`, json.c→`j_`).
+Result: all 18 previously-BIN modules are now REAL (linked + called).
 
 ## Oracle parity (verified)
 

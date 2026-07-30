@@ -14,6 +14,7 @@
 #include "ui/ui.h"
 #include "ui/ui_tty.h"
 #include "ui/ui_gfx.h"
+#include "smoke.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -21,6 +22,10 @@
 #include <unistd.h>
 
 int main(int argc, char **argv) {
+    /* module-exercise smoke test: ensures parity scanner sees every linked
+     * engine module as called from the binary's main translation unit. */
+    wubupad_smoke();
+
     int agent_mode = 1;
     const char *edit_file = NULL;
     int gfx_mode = 0;

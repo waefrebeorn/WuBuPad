@@ -138,7 +138,7 @@ target_link_libraries(wubupad_atom PUBLIC
   wubupad_autoindent wubupad_minimap wubupad_mdpreview)
 
 # wubuOS-facing CLI: NDJSON in -> NDJSON out, plus an interactive TUI/gfx mode.
-add_executable(wubupad apps/wubupad/main.c)
+add_executable(wubupad apps/wubupad/main.c apps/wubupad/smoke.c)
 if(WUBUPAD_WITH_GFX)
   target_link_libraries(wubupad PRIVATE wubupad_agent wubupad_ui wubupad_gfx wubupad_atom SDL2::SDL2 Freetype::Freetype)
 else()
