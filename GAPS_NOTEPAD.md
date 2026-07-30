@@ -1,5 +1,15 @@
 # Gap List — WuBuPad vs Notepad++
 
+> ⚠️ **STALE — DO NOT USE FOR PLANNING.** This document contains misleading
+> "CLOSED" markers. Many items marked CLOSED are WUBOOS-only — the code exists
+> in `src/ui/` and is tested but is NOT in the standalone `wubupad` binary.
+>
+> **Use [GAPS_REAL.md](GAPS_REAL.md) instead** — it is the verified, honest gap
+> list generated from source audit + build + ctest (22/22 green) + web research
+> against Notepad++ 8.7.9, Scintilla 5.x.
+>
+> This document is kept for historical reference only.
+
 Goal: a **clean C11** code editor that rivals Notepad++ feature coverage.
 Notepad++ itself is GPL and built on **Scintilla** (editing engine, C++) +
 Boost + Win32. We are NOT forking it; we are building a ground-up, fork-free,

@@ -128,9 +128,10 @@ Notepad++ source is cloned read-only to `../ref/notepad-plus-plus` for
 feature parity reference only. WuBuPad is original C11 code.
 
 See also:
-- [GAPS_NOTEPAD.md](GAPS_NOTEPAD.md) — feature inventory vs Notepad++
-- [GAPS_GUI.md](GAPS_GUI.md) — GUI strategy and architecture decisions
-- [GAPS_OFFICE.md](GAPS_OFFICE.md) — cross-repo editor integration plan
+- [GAPS_REAL.md](GAPS_REAL.md) — **VERIFIED gap list** (source audit + build + ctest) — use this for planning
+- [GAPS_NOTEPAD.md](GAPS_NOTEPAD.md) — feature inventory vs Notepad++ (STALE — see GAPS_REAL.md)
+- [GAPS_GUI.md](GAPS_GUI.md) — GUI strategy and architecture decisions (STALE — see GAPS_REAL.md)
+- [GAPS_OFFICE.md](GAPS_OFFICE.md) — cross-repo editor integration plan (STALE — see GAPS_REAL.md)
 - [AGI_PROTOCOL.md](AGI_PROTOCOL.md) — machine-facing JSON protocol spec
 - [RESEARCH_UX_UI.md](RESEARCH_UX_UI.md) — UX research and decisions
 - [PLAN_BLITZ.md](PLAN_BLITZ.md) — development roadmap
