@@ -9,6 +9,7 @@
  * Headless/CI: if SDL_VIDEODRIVER=dummy, init still succeeds (no real window)
  * so tests can exercise draw_line/present without a display. */
 #include "ui.h"
+#include "ui_gfx.h"
 #include "ui_theme.h"
 #include <stdlib.h>
 #include <string.h>
