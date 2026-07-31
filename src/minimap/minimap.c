@@ -42,7 +42,8 @@ size_t minimap_update(Minimap *m, const char *text) {
 }
 int minimap_lit(const Minimap *m, size_t r){ return m && r < m->n && m->lit[r]; }
 size_t minimap_lit_count(const Minimap *m){
-    if (!m) return 0; size_t c = 0;
+    if (!m) return 0;
+    size_t c = 0;
     for (size_t i = 0; i < m->n; i++) c += m->lit[i];
     return c;
 }

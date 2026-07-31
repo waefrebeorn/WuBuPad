@@ -1,5 +1,6 @@
 /* test_treeview.c -- uses a temp dir tree + fake porcelain. */
 #include "treeview.h"
+#include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

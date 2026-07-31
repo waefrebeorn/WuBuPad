@@ -71,10 +71,10 @@ size_t pkgmgr_discover(PackageManager *m) {
     while ((e = readdir(d)) && m->n < PKG_MAX) {
         if (e->d_name[0] == '.') continue;
         char path[1200];
-        snprintf(path, sizeof path, "%s/%s", m->dir, e->d_name);
+        snprintf(path, sizeof path, "%.1100s/%s", m->dir, e->d_name);
         if (!dir_exists(path)) continue;
         char pj[1400];
-        snprintf(pj, sizeof pj, "%s/package.json", path);
+        snprintf(pj, sizeof pj, "%.1100s/package.json", path);
         FILE *f = fopen(pj, "r");
         if (!f) continue;
         fseek(f, 0, SEEK_END); long sz = ftell(f); fseek(f, 0, SEEK_SET);
@@ -83,13 +83,20 @@ size_t pkgmgr_discover(PackageManager *m) {
             buf[sz] = 0;
             JVal *root = j_parse(buf, NULL);
             struct Pkg *p = &m->pkgs[m->n];
-            strncpy(p->name, e->d_name, sizeof p->name - 1);
-            strncpy(p->dir, path, sizeof p->dir - 1);
+            /* safe bounded copies: always NUL-terminate, no -Wstringop-truncation. */
+            #define PCPY(dst, src, cap) do { \
+                size_t _l = (src) ? strlen(src) : 0; \
+                if (_l >= (cap)) _l = (cap) - 1; \
+                if (src) memcpy((dst), (src), _l); \
+                (dst)[_l] = '\0'; \
+            } while (0)
+            PCPY(p->name,    e->d_name,        sizeof p->name);
+            PCPY(p->dir,     path,             sizeof p->dir);
             p->enabled = 0; p->dl = NULL; p->manifest_cmds = NULL; p->manifest_n = 0;
             if (root) {
                 const JVal *v = j_obj_get(root, "version");
                 if (v && j_type(v) == J_STR) {
-                    strncpy(p->version, j_as_str(v), sizeof p->version - 1);
+                    PCPY(p->version, j_as_str(v), sizeof p->version);
                 }
                 /* wubupad.commands: array of strings -> declared commands */
                 const JVal *wp = j_obj_get(root, "wubupad");
@@ -171,7 +178,8 @@ int pkgmgr_disable(PackageManager *m, const char *name) {
 
 size_t pkgmgr_count(const PackageManager *m){ return m ? m->n : 0; }
 size_t pkgmgr_enabled_count(const PackageManager *m){
-    if (!m) return 0; size_t c = 0;
+    if (!m) return 0;
+    size_t c = 0;
     for (size_t i = 0; i < m->n; i++) if (m->pkgs[i].enabled) c++;
     return c;
 }

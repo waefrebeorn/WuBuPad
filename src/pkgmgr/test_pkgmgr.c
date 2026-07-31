@@ -1,5 +1,6 @@
 /* test_pkgmgr.c -- uses a temp dir with a fake package.json. */
 #include "pkgmgr.h"
+#include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

@@ -79,9 +79,9 @@ char *mdpreview_render(const char *md, const char *title) {
         }
         if (in_code) { esc_append(&out,&len,&cap,line,llen,1); esc_append(&out,&len,&cap,"\n",1,0); i=(e<L)?e+1:L; continue; }
         /* heading */
-        int h = 0; while (h < llen && h < 6 && line[h] == '#') h++;
-        if (h > 0 && (h == llen || line[h] == ' ')) {
-            size_t txt0 = (h < llen) ? i + h + 1 : i + h;
+        int h = 0; while ((size_t)h < llen && h < 6 && line[h] == '#') h++;
+        if (h > 0 && ((size_t)h == llen || line[h] == ' ')) {
+            size_t txt0 = ((size_t)h < llen) ? i + h + 1 : i + h;
             char tag[8]; snprintf(tag, sizeof tag, "h%d", h);
             esc_append(&out,&len,&cap,"<",1,0); esc_append(&out,&len,&cap,tag,strlen(tag),0); esc_append(&out,&len,&cap,">",1,0);
             emit_inline(&out,&len,&cap, md+txt0, (e>txt0?e-txt0:0));

@@ -32,9 +32,9 @@ int snippet_expand(SnippetEngine *e, void *buf, snip_insert_fn ins,
                    snip_delete_fn del, snip_len_fn lenfn,
                    const char *trigger, size_t pos);
 
-/* Advance to the next tabstop (Tab). Fills *out_from/*out_to with the active
- * placeholder range (to overwrite). Returns 1 if a tabstop is active, 0 if
- * none (expansion finished). Mirrors are auto-synced by the host on edit. */
+/* Advance to the next tabstop (Tab). Fills *out_from and *out_to with the
+ * active placeholder range (to overwrite). Returns 1 if a tabstop is active,
+ * 0 if none (expansion finished). Mirrors are auto-synced by the host on edit. */
 int snippet_next(SnippetEngine *e, size_t *out_from, size_t *out_to);
 
 /* Active (currently-selected) placeholder range, or 0,0 if none. */

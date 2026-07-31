@@ -11,7 +11,12 @@ static int is_dir(const char *p){ struct stat st; return stat(p,&st)==0 && S_ISD
 static TreeNode *node_new(const char *name, TVKind k) {
     TreeNode *n = calloc(1, sizeof *n);
     if (!n) return NULL;
-    strncpy(n->name, name, sizeof n->name - 1);
+    /* safe bounded copy: cap at sizeof-1 so we always NUL-terminate. */
+    size_t cap = sizeof n->name;
+    size_t len = name ? strlen(name) : 0;
+    if (len >= cap) len = cap - 1;
+    if (name) memcpy(n->name, name, len);
+    n->name[len] = '\0';
     n->kind = k; n->git = 0;
     return n;
 }
