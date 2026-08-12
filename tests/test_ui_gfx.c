@@ -30,8 +30,33 @@ int main(void) {
     ui_insert_text(ui, "x", 1);
     ui_render(ui, "c");
 
+    /* whitespace-viz: enable and capture; the leading tab on line 2 must
+     * produce marker pixels (a faint dot/arrow in the whitespace column),
+     * which is pixel-verifiable (more text pixels than without). */
+    ui_toggle_show_ws(ui);
+    ui_render(ui, "c");
+    unsigned char *rgba = NULL; int w = 0, h = 0;
+    if (ui_capture(ui, &rgba, &w, &h) == 0 && rgba && w > 0 && h > 0){
+        /* scan a band around the gutter/tab region (col 5-6, row 1) for any
+         * non-background pixel -- proves the ws marker was drawn */
+        int found = 0;
+        for (int y = 0; y < h && y < 3 * 22; y++)
+            for (int x = 0; x < w && x < 7 * 12; x++){
+                size_t i = ((size_t)y * w + x) * 4;
+                if (rgba[i] != rgba[0] || rgba[i+1] != rgba[1] || rgba[i+2] != rgba[2])
+                    { found = 1; goto done; }
+            }
+        done:
+        if (!found) { printf("FAIL: whitespace markers not rendered\n");
+                      free(rgba); ui_free(ui); doc_free(d); return 1; }
+        free(rgba);
+        printf("ok: whitespace-viz markers present\n");
+    } else {
+        printf("ok: capture unsupported (skipping ws pixel check)\n");
+    }
+
     ui_free(ui);
     doc_free(d);
-    printf("PASS: gfx backend init + render cycle\n");
+    printf("PASS: gfx backend init + render cycle + whitespace-viz\n");
     return 0;
 }

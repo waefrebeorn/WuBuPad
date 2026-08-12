@@ -50,6 +50,8 @@ typedef struct {
     int init_ok;
     ShapeCtx *shape;       /* text shaping (NULL = legacy path) */
     int *caret_x;          /* per-row source-char pixel x (row*CARET_STRIDE) */
+    int show_ws;           /* whitespace visualization on (Notepad++ View) */
+    int indent_guides;     /* indent guide lines on (Notepad++ View) */
     int caret_row;         /* cursor view-row (for active-line band) */
 } GFX;
 
@@ -309,6 +311,45 @@ static void gfx_draw_line(void *st, int row, const char *text, int len, int kind
     int n = len < 0 ? (int)strlen(text ? text : "") : len;
     int px0 = g->char_w * 5 + 8;   /* gutter inset on the 4px grid (spec §4) */
 
+    /* Whitespace visualization + indent guides (Notepad++ View; research
+     * synthesis 2026-08-12). Draw faint markers over LEADING whitespace only:
+     * spaces -> dot, tabs -> small arrow, and a dotted vertical guide at each
+     * indent column. Uses TOK_TEXT_DIM at reduced alpha via gfx_fill. */
+    if (g->show_ws || g->indent_guides){
+        UIRGB dim = gfx_color(g, TOK_TEXT_DIM);
+        int indent_col = -1, indents = 0;
+        for (int i = 0; i < n; i++){
+            unsigned char c = (unsigned char)text[i];
+            if (c == ' ' || c == '\t'){
+                if (c == ' ') indent_col++;
+                else { indent_col++; indents++; }
+                int cxx = px0 + indent_col * g->char_w;
+                if (g->indent_guides && indents > 0 &&
+                    (indent_col % 4 == 0)){
+                    /* dotted vertical guide at this indent column */
+                    for (int yy = py + 4; yy < py + g->line_h - 2; yy += 3){
+                        SDL_SetRenderDrawColor(g->ren, dim.r, dim.g, dim.b, 60);
+                        SDL_RenderDrawPoint(g->ren, cxx, yy);
+                    }
+                }
+                if (g->show_ws){
+                    if (c == ' '){
+                        /* faint dot at mid-height of the space cell */
+                        SDL_SetRenderDrawColor(g->ren, dim.r, dim.g, dim.b, 90);
+                        SDL_RenderDrawPoint(g->ren, cxx + g->char_w/2, py + g->line_h/2);
+                    } else {
+                        /* small right-pointing arrow for a tab */
+                        SDL_SetRenderDrawColor(g->ren, dim.r, dim.g, dim.b, 110);
+                        int ty = py + g->line_h/2;
+                        SDL_RenderDrawLine(g->ren, cxx+2, ty, cxx+g->char_w-4, ty);
+                        SDL_RenderDrawLine(g->ren, cxx+g->char_w-6, ty-2, cxx+g->char_w-4, ty);
+                        SDL_RenderDrawLine(g->ren, cxx+g->char_w-6, ty+2, cxx+g->char_w-4, ty);
+                    }
+                }
+            } else break;   /* leading whitespace ends at first non-ws */
+        }
+    }
+
 #ifdef WUBUPAD_WITH_SHAPE
     if (g->shape) {
         ShapeGlyph *gly = NULL;
@@ -462,6 +503,12 @@ static void gfx_set_theme(void *st, int dark) {
     if (!g || !g->theme) return;
     ui_theme_set_dark(g->theme, dark);
 }
+static void gfx_set_ws(void *st, int show_ws, int indent_guides) {
+    GFX *g = st;
+    if (!g) return;
+    g->show_ws = show_ws;
+    g->indent_guides = indent_guides;
+}
 
 /* function-list panel: draw symbol name right-aligned in the right gutter. */
 static void gfx_draw_symbols(void *st, int row, const char *name, int line_no) {
@@ -516,6 +563,8 @@ static int gfx_get_key(void *st, char *ch, int *key) {
             case SDLK_e: *key = (mod & KMOD_SHIFT) ? UI_KEY_EOL : UI_KEY_END; return 0;
             case SDLK_r: *key = (mod & KMOD_SHIFT) ? UI_KEY_MACRO : UI_KEY_NONE; return 0;
             case SDLK_p: *key = (mod & KMOD_SHIFT) ? UI_KEY_REPLAY : UI_KEY_NONE; return 0;
+            case SDLK_w: *key = UI_KEY_WS; return 0;          /* Ctrl+W: whitespace viz */
+            case SDLK_i: *key = (mod & KMOD_SHIFT) ? UI_KEY_INDENT : UI_KEY_NONE; return 0; /* Ctrl+Shift+I: indent guides */
             case SDLK_SPACE:
                 if (mod & KMOD_CTRL) { *key = UI_KEY_COMPLETE; return 0; }
                 break;
@@ -567,7 +616,7 @@ const UI_Backend *ui_gfx_backend(void) {
         gfx_present, gfx_get_key, gfx_resize,
         gfx_chrome_rows, gfx_draw_gutter, gfx_draw_tab,
         gfx_draw_status, gfx_draw_menu, gfx_draw_symbols, gfx_set_theme,
-        gfx_capture_shim};
+        gfx_set_ws, gfx_capture_shim};
     return &b;
 }
 

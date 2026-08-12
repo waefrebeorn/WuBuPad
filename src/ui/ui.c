@@ -49,6 +49,8 @@ struct UI {
     size_t comp_n;       /* candidate count */
     int    comp_idx;     /* index of currently-shown candidate (-1 = none) */
     int    show_symbols; /* function-list panel toggle */
+    int    show_ws;      /* whitespace viz (View menu) */
+    int    indent_guides;/* indent guide lines (View menu) */
     /* --- Atom subsystem (package-driven) --- */
     int    show_tree;       /* project tree view toggle */
     int    palette_active;  /* command palette open (mirrors ui_atom state) */
@@ -389,6 +391,8 @@ void ui_apply(UI *ui, char ch, int key) {
         case UI_KEY_PASTE:    ui_paste(ui); break;
         case UI_KEY_PASTE_PLAIN: ui_paste_plain(ui); break;
         case UI_KEY_SELECT_ALL: ui_select_all(ui); break;
+        case UI_KEY_WS:     ui_toggle_show_ws(ui); break;
+        case UI_KEY_INDENT: ui_toggle_indent_guides(ui); break;
         default:
             if (ch == '\n') ui_newline(ui);
             else if (ch) { char buf[2] = {ch,0}; ui_insert_text(ui, buf, 1); }
@@ -501,6 +505,18 @@ void ui_toggle_theme(UI *ui) {
 }
 int ui_theme_dark(const UI *ui) {
     return ui && ui->theme ? ui_theme_is_dark(ui->theme) : 1;
+}
+void ui_toggle_show_ws(UI *ui) {
+    if (!ui) return;
+    ui->show_ws = !ui->show_ws;
+    if (ui->be && ui->be->set_ws)
+        ui->be->set_ws(ui->bstate, ui->show_ws, ui->indent_guides);
+}
+void ui_toggle_indent_guides(UI *ui) {
+    if (!ui) return;
+    ui->indent_guides = !ui->indent_guides;
+    if (ui->be && ui->be->set_ws)
+        ui->be->set_ws(ui->bstate, ui->show_ws, ui->indent_guides);
 }
 
 /* --- multi-doc session (Phase C) --- */

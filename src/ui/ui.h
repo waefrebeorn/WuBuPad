@@ -52,6 +52,8 @@ typedef struct {
     void (*draw_symbols)(void *bstate, int row, const char *name, int line_no);
     /* apply a theme variant (1=dark, 0=light). */
     void (*set_theme)(void *bstate, int dark);
+    /* whitespace-viz / indent-guide toggles (optional; NULL = unsupported). */
+    void (*set_ws)(void *bstate, int show_ws, int indent_guides);
     /* --- optional headless capture (gfx backend only); NULL = unsupported --- */
     /* Render the current frame and hand back a malloc'd RGBA buffer (caller
      * frees) sized *w x *h. Returns 0 on success, -1 if unsupported. */
@@ -84,7 +86,9 @@ enum {
     UI_KEY_COPY,          /* Ctrl+C */
     UI_KEY_PASTE,         /* Ctrl+V */
     UI_KEY_PASTE_PLAIN,   /* Ctrl+Shift+V */
-    UI_KEY_SELECT_ALL     /* Ctrl+A */
+    UI_KEY_SELECT_ALL,    /* Ctrl+A */
+    UI_KEY_WS,            /* whitespace viz toggle */
+    UI_KEY_INDENT         /* indent guide toggle */
 };
 
 /* Create a UI bound to `doc` and backend `be`. cols/rows seed the viewport. */
@@ -130,6 +134,12 @@ int  ui_find_error(const UI *ui);
 void ui_set_theme(UI *ui, int dark);    /* 1=dark, 0=light */
 void ui_toggle_theme(UI *ui);           /* flip + persist */
 int  ui_theme_dark(const UI *ui);       /* 1=dark, 0=light */
+
+/* --- view toggles (Notepad++ View menu; research synthesis 2026-08-12) --- */
+/* Whitespace visualization (dots for spaces, arrows for tabs). */
+void ui_toggle_show_ws(UI *ui);
+/* Indent guides (dotted vertical lines at each indent column). */
+void ui_toggle_indent_guides(UI *ui);
 
 /* --- multi-doc session (Phase C) --- */
 /* Attach a Docs session so the UI shows a tab strip + switches the active
