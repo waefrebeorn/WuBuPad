@@ -10,6 +10,7 @@
 #include "ui_atom.h"
 #include "command.h"
 #include "fuzzy.h"
+#include "transform.h"
 #include "palette.h"
 #include "pkgmgr.h"
 #include <stdlib.h>
@@ -46,6 +47,28 @@ static int cmd_convert_eol(void *arg){
     UI *ui = arg; if (!ui) return -1; ui_convert_eol(ui); return 0;
 }
 
+/* ---- text transforms (sort lines + case) via the headless transform core --- */
+static int cmd_sort_asc(void *arg){
+    UI *ui = arg; if (!ui) return -1;
+    ui_sort_lines(ui, SORT_ASC); return 0;
+}
+static int cmd_sort_desc(void *arg){
+    UI *ui = arg; if (!ui) return -1;
+    ui_sort_lines(ui, SORT_DESC); return 0;
+}
+static int cmd_case_upper(void *arg){
+    UI *ui = arg; if (!ui) return -1;
+    ui_case_convert(ui, TRANSFORM_UPPER); return 0;
+}
+static int cmd_case_lower(void *arg){
+    UI *ui = arg; if (!ui) return -1;
+    ui_case_convert(ui, TRANSFORM_LOWER); return 0;
+}
+static int cmd_case_title(void *arg){
+    UI *ui = arg; if (!ui) return -1;
+    ui_case_convert(ui, TRANSFORM_TITLE); return 0;
+}
+
 void ui_atom_init(UI *ui) {
     g_ui = ui;
     g_reg = command_registry_create();
@@ -62,6 +85,11 @@ void ui_atom_init(UI *ui) {
     command_register(g_reg, "editor:fold-current-block", cmd_toggle_fold);
     command_register(g_reg, "command:palette", cmd_open_palette_again);
     command_register(g_reg, "editor:convert-eol", cmd_convert_eol);
+    command_register(g_reg, "editor:sort-ascending", cmd_sort_asc);
+    command_register(g_reg, "editor:sort-descending", cmd_sort_desc);
+    command_register(g_reg, "editor:uppercase", cmd_case_upper);
+    command_register(g_reg, "editor:lowercase", cmd_case_lower);
+    command_register(g_reg, "editor:title-case", cmd_case_title);
 }
 
 void ui_atom_free(UI *ui) {

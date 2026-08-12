@@ -160,6 +160,9 @@ void ui_replay_macro(UI *ui);   /* replay last recording */
 int  ui_get_colmode(const UI *ui);
 void ui_toggle_colmode(UI *ui);
 void ui_convert_eol(UI *ui);    /* flip LF <-> CRLF */
+/* text transforms (sort lines + case) — GUI_MATHEMATICS/Notepad++ parity */
+int  ui_sort_lines(UI *ui, int which);   /* SORT_ASC/DESC/ASC_IC/DESC_IC */
+void ui_case_convert(UI *ui, int which); /* TRANSFORM_UPPER/LOWER/TITLE */
 void ui_complete(UI *ui);      /* word completion at cursor (Ctrl-Space) */
 
 /* --- folding (Phase D) --- */

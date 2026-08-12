@@ -12,6 +12,7 @@
 #include "ui_atom.h"
 #include "complete.h"
 #include "docs.h"
+#include "transform.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -589,6 +590,19 @@ void ui_toggle_colmode(UI *ui) {
 void ui_convert_eol(UI *ui) {
     if (!ui || !ui->doc) return;
     doc_convert_eol(ui->doc, doc_eol_mode(ui->doc) ? 0 : 1);
+}
+
+/* ---- text transforms (sort lines + case) ------------------------------- */
+/* Sort the selection (or whole doc) ascending/descending. Returns 1 if the
+ * doc changed. Mirrors ui_convert_eol (operates on the opaque core). */
+int ui_sort_lines(UI *ui, int which) {
+    if (!ui || !ui->doc) return 0;
+    return transform_sort_lines(ui->doc, which);
+}
+/* Convert the selection (or whole doc) to upper/lower/title case. */
+void ui_case_convert(UI *ui, int which) {
+    if (!ui || !ui->doc) return;
+    transform_case(ui->doc, which);
 }
 
 /* --- folding (Phase D) --- */

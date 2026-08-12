@@ -105,29 +105,57 @@ void treeview_apply_git(TreeView *t, const char *porcelain) {
 size_t treeview_node_count(const TreeView *t) {
     size_t c = 0;
     if (!t) return 0;
-    TreeNode *st[256]; int sp = 0; st[sp++] = t->root;
-    while (sp) { TreeNode *n = st[--sp]; c++;
-        for (TreeNode *c2 = n->child; c2; c2 = c2->sibling) st[sp++] = c2; }
+    /* iterative DFS with a growing stack (a node with many siblings must not
+     * overflow a fixed array — GUI_MATHEMATICS robustness) */
+    size_t cap = 256, sp = 0;
+    TreeNode **st = calloc(cap, sizeof *st);
+    if (!st) return 0;
+    st[sp++] = t->root;
+    while (sp) {
+        TreeNode *n = st[--sp]; c++;
+        for (TreeNode *c2 = n->child; c2; c2 = c2->sibling) {
+            if (sp == cap) { cap *= 2; TreeNode **ns = realloc(st, cap * sizeof *ns); if (!ns) { free(st); return c; } st = ns; }
+            st[sp++] = c2;
+        }
+    }
+    free(st);
     return c;
 }
 size_t treeview_dirty_count(const TreeView *t) {
     size_t c = 0;
     if (!t) return 0;
-    TreeNode *st[256]; int sp = 0; st[sp++] = t->root;
-    while (sp) { TreeNode *n = st[--sp];
+    size_t cap = 256, sp = 0;
+    TreeNode **st = calloc(cap, sizeof *st);
+    if (!st) return 0;
+    st[sp++] = t->root;
+    while (sp) {
+        TreeNode *n = st[--sp];
         if (n != t->root && n->git != 0) c++;
-        for (TreeNode *c2 = n->child; c2; c2 = c2->sibling) st[sp++] = c2; }
+        for (TreeNode *c2 = n->child; c2; c2 = c2->sibling) {
+            if (sp == cap) { cap *= 2; TreeNode **ns = realloc(st, cap * sizeof *ns); if (!ns) { free(st); return c; } st = ns; }
+            st[sp++] = c2;
+        }
+    }
+    free(st);
     return c;
 }
 void treeview_walk(const TreeView *t, tree_visit_fn cb, void *ctx) {
     if (!t || !cb) return;
-    /* iterative DFS */
+    /* iterative DFS with a growing stack */
     typedef struct { TreeNode *n; int d; } Frame;
-    Frame st[512]; int sp = 0; st[sp].n = t->root; st[sp].d = 0; sp++;
-    while (sp) { Frame f = st[--sp];
-        if (cb(ctx, f.d, f.n)) return;
-        for (TreeNode *c = f.n->child; c; c = c->sibling) { st[sp].n = c; st[sp].d = f.d + 1; sp++; }
+    size_t cap = 512, sp = 0;
+    Frame *st = calloc(cap, sizeof *st);
+    if (!st) return;
+    st[sp].n = t->root; st[sp].d = 0; sp++;
+    while (sp) {
+        Frame f = st[--sp];
+        if (cb(ctx, f.d, f.n)) { free(st); return; }
+        for (TreeNode *c = f.n->child; c; c = c->sibling) {
+            if (sp == cap) { cap *= 2; Frame *ns = realloc(st, cap * sizeof *ns); if (!ns) { free(st); return; } st = ns; }
+            st[sp].n = c; st[sp].d = f.d + 1; sp++;
+        }
     }
+    free(st);
 }
 const char *treeview_git_label(int git){
     switch (git){ case 1: return "M"; case 2: return "A"; case 3: return "I"; default: return " "; }
