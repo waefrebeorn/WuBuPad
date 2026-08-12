@@ -238,13 +238,17 @@ void ui_render(UI *ui, const char *lang) {
     size_t total = doc_length(ui->doc);
 
     int chrome = ui->be->chrome_rows ? ui->be->chrome_rows(ui->bstate) : 0;
-    int tab_rows  = (chrome >= 2 && ui->be->draw_tab) ? 1 : 0;
+    int menu_row = (chrome >= 3 && ui->be->draw_menu) ? 0 : -1;
+    int tab_row  = (chrome >= 2 && ui->be->draw_tab) ? (menu_row >= 0 ? 1 : 0) : -1;
     int status_row = (chrome >= 1 && ui->be->draw_status) ? ui->rows - 1 : -1;
-    int text_top = tab_rows;
-    int text_rows = ui->rows - tab_rows - (status_row >= 0 ? 1 : 0);
+    int text_top = (menu_row >= 0 ? 1 : 0) + (tab_row >= 0 ? 1 : 0);
+    int text_rows = ui->rows - text_top - (status_row >= 0 ? 1 : 0);
+
+    /* menu bar */
+    if (menu_row >= 0 && ui->be->draw_menu) ui->be->draw_menu(ui->bstate, menu_row);
 
     /* tab strip */
-    if (ui->be->draw_tab && ui->docs) {
+    if (tab_row >= 0 && ui->be->draw_tab && ui->docs) {
         size_t n = docs_count(ui->docs), act = docs_active(ui->docs);
         for (size_t i = 0; i < n; i++) {
             const char *p = docs_path(ui->docs, i);
@@ -252,7 +256,7 @@ void ui_render(UI *ui, const char *lang) {
             /* basename */
             const char *bn = name;
             for (const char *s = name; *s; s++) if (*s == '/') bn = s + 1;
-            ui->be->draw_tab(ui->bstate, 0, (int)i, bn,
+            ui->be->draw_tab(ui->bstate, tab_row, (int)i, bn,
                             (int)i == (int)act, docs_dirty(ui->docs, i));
         }
     }

@@ -44,6 +44,10 @@ typedef struct {
                      const char *name, int active, int dirty);
     /* draw the bottom status line. */
     void (*draw_status)(void *bstate, int row, const char *text);
+    /* draw the top menu bar row (File/Edit/View/Help labels). Optional;
+     * NULL = no menu bar. Helps close the Notepad++ GUI-parity gap where the
+     * reference has an 11-entry menu bar and WuBuPad had none. */
+    void (*draw_menu)(void *bstate, int row);
     /* draw the function-list panel (right gutter): one row per symbol. */
     void (*draw_symbols)(void *bstate, int row, const char *name, int line_no);
     /* apply a theme variant (1=dark, 0=light). */

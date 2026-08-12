@@ -364,7 +364,29 @@ static void gfx_draw_caret(void *st, int row, int col) {
 /* --- chrome (Phase C) --- */
 static int gfx_chrome_rows(void *st) {
     (void)st;
-    return 2;   /* 1 tab strip + 1 status bar */
+    return 3;   /* 1 menu bar + 1 tab strip + 1 status bar */
+}
+
+/* Notepad++ has an 11-entry menu bar (File/Edit/Search/View/Format/...); the
+ * shell had none, a real GUI-parity gap. Draw a top menu row with the core
+ * entries. */
+static void gfx_draw_menu(void *st, int row) {
+    GFX *g = st;
+    if (!g || !g->init_ok || row < 0 || row >= g->rows) return;
+    int py = row * g->line_h;
+    gfx_fill(g, 0, py, g->cols * g->char_w, g->line_h, TOK_SURFACE_2);
+    gfx_fill(g, 0, py + g->line_h - 1, g->cols * g->char_w, 1, TOK_BORDER);
+    const char *items[] = {"File","Edit","Search","View","Format","Language",
+                           "Settings","Tools","Macro","Run","Help"};
+    int px = 8;
+    for (size_t i = 0; i < sizeof items / sizeof items[0]; i++) {
+        const char *it = items[i];
+        size_t n = strlen(it);
+        for (size_t j = 0; j < n; j++)
+            gfx_draw_glyph(g, (unsigned char)it[j], px + (int)j * g->char_w,
+                           py, TOK_TEXT);
+        px += (int)(n * g->char_w) + g->char_w * 2;   /* label + 2-cell gap */
+    }
 }
 
 static void gfx_draw_gutter(void *st, int row, int line_no) {
@@ -390,22 +412,23 @@ static void gfx_draw_gutter(void *st, int row, int line_no) {
 static void gfx_draw_tab(void *st, int tab_row, int index,
                          const char *name, int active, int dirty) {
     GFX *g = st;
-    if (!g || !g->init_ok || tab_row != 0) return;
+    if (!g || !g->init_ok || tab_row < 0) return;
+    int py = tab_row * g->line_h;
     /* Tab = a neutral segment on SURFACE_2; the ACTIVE tab rises to SURFACE_3
      * and gets a 2px accent underline. No bright blue fill (spec §5: one
      * accent used for emphasis only). Inactive tabs use dim text. */
     int tw = g->char_w * 22;
     int w = tw;
-    gfx_fill(g, index * tw, 0, w, g->line_h, active ? TOK_SURFACE_3 : TOK_SURFACE_2);
+    gfx_fill(g, index * tw, py, w, g->line_h, active ? TOK_SURFACE_3 : TOK_SURFACE_2);
     /* 1px divider to the right of each tab. */
-    gfx_fill(g, index * tw + w - 1, 0, 1, g->line_h, TOK_BORDER);
+    gfx_fill(g, index * tw + w - 1, py, 1, g->line_h, TOK_BORDER);
     if (active)
-        gfx_fill(g, index * tw, g->line_h - 2, w, 2, TOK_ACCENT);  /* accent underline */
+        gfx_fill(g, index * tw, py + g->line_h - 2, w, 2, TOK_ACCENT);  /* accent underline */
 
     /* label: dirty shows an accent dot (not just '*') + name; active text is
      * primary, inactive is dim. Don't rely on color alone (spec §1/§5). */
     int tx = index * tw + 12;
-    int ty = (g->line_h - g->char_w) / 2;   /* center mono glyph in tab */
+    int ty = py + (g->line_h - g->char_w) / 2;   /* center mono glyph in tab */
     if (dirty) {
         gfx_fill(g, tx, ty + 2, 6, 6, TOK_ACCENT);   /* dirty dot */
         tx += 12;
@@ -414,7 +437,7 @@ static void gfx_draw_tab(void *st, int tab_row, int index,
     int n = snprintf(buf, sizeof buf, "%s%s", name ? name : "",
                      dirty ? "" : "");
     for (int i = 0; i < n && tx < index * tw + w - 8; i++)
-        gfx_draw_glyph(g, (unsigned char)buf[i], tx + i * g->char_w, 0,
+        gfx_draw_glyph(g, (unsigned char)buf[i], tx + i * g->char_w, ty,
                        active ? TOK_TEXT : TOK_TEXT_DIM);
 }
 
@@ -540,7 +563,7 @@ const UI_Backend *ui_gfx_backend(void) {
         gfx_init, gfx_destroy, gfx_draw_line, gfx_draw_caret,
         gfx_present, gfx_get_key, gfx_resize,
         gfx_chrome_rows, gfx_draw_gutter, gfx_draw_tab,
-        gfx_draw_status, gfx_draw_symbols, gfx_set_theme,
+        gfx_draw_status, gfx_draw_menu, gfx_draw_symbols, gfx_set_theme,
         gfx_capture_shim};
     return &b;
 }
