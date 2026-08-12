@@ -21,6 +21,22 @@
 #include <string.h>
 #include <unistd.h>
 
+/* Infer the lexer language from a file path's extension. Returns a static
+ * string or NULL for unknown. Extends the language registry (multi-lexer). */
+static const char *lang_for_path(const char *path){
+    const char *ext = strrchr(path ? path : "", '.');
+    if (!ext || !ext[1]) return NULL;
+    if (!strcmp(ext, ".c") || !strcmp(ext, ".h") || !strcmp(ext, ".cpp") || !strcmp(ext, ".hpp")) return "c";
+    if (!strcmp(ext, ".json")) return "json";
+    if (!strcmp(ext, ".py")) return "py";
+    if (!strcmp(ext, ".js") || !strcmp(ext, ".mjs")) return "js";
+    if (!strcmp(ext, ".ts")) return "js";
+    if (!strcmp(ext, ".css")) return "css";
+    if (!strcmp(ext, ".sql")) return "sql";
+    if (!strcmp(ext, ".md") || !strcmp(ext, ".markdown")) return "md";
+    return NULL;
+}
+
 int main(int argc, char **argv) {
     /* module-exercise smoke test: ensures parity scanner sees every linked
      * engine module as called from the binary's main translation unit. */
@@ -53,7 +69,7 @@ int main(int argc, char **argv) {
     /* Interactive mode (TUI or GFX) -- open the file into a Docs session so
      * the tab strip works; reuse the editing core. */
     Docs *docs = docs_create();
-    const char *lang = edit_file ? "c" : NULL;
+    const char *lang = edit_file ? lang_for_path(edit_file) : NULL;
     if (edit_file) {
         size_t idx = docs_load_file(docs, edit_file, lang);
         if (idx == (size_t)-1) {
