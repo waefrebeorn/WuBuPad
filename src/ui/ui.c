@@ -347,6 +347,24 @@ void ui_render(UI *ui, const char *lang) {
         }
     }
 
+    /* command palette overlay (recognition over recall, Nielsen #6): when the
+     * palette is open it must be VISIBLE, with the highlighted row marked
+     * (focus-visible, WCAG 2.4.7). Draw it over the text viewport. */
+    if (ui_palette_open(ui) && ui->be->draw_line) {
+        char buf[4096];
+        ui_palette_render(ui, buf, sizeof buf);
+        int r = text_top;
+        char *save = NULL;
+        for (char *ln = strtok_r(buf, "\n", &save); ln && r < text_top + text_rows;
+             ln = strtok_r(NULL, "\n", &save), r++) {
+            int is_hl = (ln[0] == '>');
+            /* render the row; the '>' arrow is the non-color highlight cue
+             * (WCAG 1.4.1 no-color-alone) plus a distinct token color. */
+            ui->be->draw_line(ui->bstate, r, ln, (int)strlen(ln),
+                              is_hl ? TK_KEYWORD : TK_TEXT);
+        }
+    }
+
     ui->be->present(ui->bstate);
     free(text);
     if (lx) lex_free(lx);
