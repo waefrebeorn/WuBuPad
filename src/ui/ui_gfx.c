@@ -242,11 +242,13 @@ static int gfx_init(void **st, int cols, int rows) {
     g->caret_x = NULL;
 #endif
 
-    /* metrics: use ascii 'M' advance + line height */
+    /* metrics: use ascii 'M' advance + line height.
+     * Vertical rhythm (research 2026-08-12): line_h ≈ 1.5× font (18->27),
+     * which also makes each text row a >=24px hit target (WCAG 2.5.8). */
     int gi = gfx_cache_glyph(g, (Uint32)'M');
     g->char_w = (gi >= 0) ? g->glyphs[gi].ax : 9;
     if (g->char_w <= 0) g->char_w = 9;
-    g->line_h = FONT_PT + 4;
+    g->line_h = (FONT_PT * 3) / 2;   /* 1.5 leading = vertical rhythm */
 
     /* recompute viewport from real window size */
     int ww, wh;
