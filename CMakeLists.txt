@@ -186,6 +186,11 @@ add_executable(test_ui tests/test_ui.c)
 target_link_libraries(test_ui PRIVATE wubupad_ui)
 add_test(NAME ui COMMAND test_ui)
 
+# GUI human-parity: capture a WuBuPad frame and pixel-audit chrome regions
+# (menu, tabs, status). Fails if any is illegible. No vision, fast dev-cycle.
+add_test(NAME gui_parity COMMAND bash ${CMAKE_SOURCE_DIR}/../tooling/gui_audit_pad.sh)
+set_tests_properties(gui_parity PROPERTIES RUN_SERIAL TRUE TIMEOUT 60)
+
 # Graphics backend test (only meaningful when gfx is linked; test guards itself
 # by returning PASS-skip if SDL/FreeType were unavailable at build time).
 if(SDL2_FOUND AND FREETYPE_FOUND)
