@@ -428,9 +428,12 @@ static void gfx_draw_tab(void *st, int tab_row, int index,
     /* label: dirty shows an accent dot (not just '*') + name; active text is
      * primary, inactive is dim. Don't rely on color alone (spec §1/§5). */
     int tx = index * tw + 12;
-    int ty = py + (g->line_h - g->char_w) / 2;   /* center mono glyph in tab */
+    /* gfx_draw_glyph treats its y as a BASELINE (dst.y = y - by + line_h),
+     * same convention as gfx_draw_line passing row*line_h. Pass py so the tab
+     * label centers in the row exactly like editor text. */
+    int ty = py;
     if (dirty) {
-        gfx_fill(g, tx, ty + 2, 6, 6, TOK_ACCENT);   /* dirty dot */
+        gfx_fill(g, tx, py + (g->line_h - g->char_w) / 2 + 2, 6, 6, TOK_ACCENT);
         tx += 12;
     }
     char buf[32];
