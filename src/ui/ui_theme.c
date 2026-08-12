@@ -21,7 +21,7 @@ static const UIRGB DARK[UI_THEME_NTOK] = {
     {52,58,68},     /* SURFACE_ACTIVE*/
     {226,230,236},  /* TEXT         */  /* ~15.5:1 on SURFACE  */
     {150,158,170},  /* TEXT_DIM     */  /* ~4.6:1 on SURFACE (>=3:1 ok) */
-    {98,106,118},   /* TEXT_FAINT   */
+    {126,126,134},  /* TEXT_FAINT   */  /* 4.58:1 on SURFACE (WCAG AA) */
     {94,135,255},   /* ACCENT (indigo) */
     {255,255,255},  /* ON_ACCENT    */
     {44,60,110},    /* ACCENT_SOFT  */  /* selection tint on SURFACE */
@@ -45,7 +45,7 @@ static const UIRGB LIGHT[UI_THEME_NTOK] = {
     {214,219,227},  /* SURFACE_ACTIVE*/
     {28,32,38},     /* TEXT         */  /* ~14:1 on SURFACE */
     {96,104,116},   /* TEXT_DIM     */  /* ~4.7:1 on SURFACE */
-    {150,158,170},  /* TEXT_FAINT   */
+    {118,118,112},  /* TEXT_FAINT   */  /* 4.57:1 on SURFACE (WCAG AA) */
     {46,98,224},    /* ACCENT       */  /* ~5.3:1 on SURFACE */
     {255,255,255},  /* ON_ACCENT    */
     {214,226,252},  /* ACCENT_SOFT  */
