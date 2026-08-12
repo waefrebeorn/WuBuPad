@@ -26,6 +26,7 @@ add_library(wubupad_core STATIC
   src/lex.c
   src/doc.c
   src/search.c
+  src/transform.c
   src/encode.c
   src/diff.c
   src/docs.c
@@ -55,6 +56,11 @@ add_test(NAME lex_fold COMMAND test_lex_fold)
 add_executable(test_lex_multi tests/test_lex_multi.c)
 target_link_libraries(test_lex_multi PRIVATE wubupad_core)
 add_test(NAME lex_multi COMMAND test_lex_multi)
+
+# Text transforms: sort lines + case conversion.
+add_executable(test_transform tests/test_transform.c)
+target_link_libraries(test_transform PRIVATE wubupad_core)
+add_test(NAME transform COMMAND test_transform)
 
 # UI abstraction layer (opaque view/renderer over the core).
 # Split into a headless-only UI lib (no windowing deps, reused by the agent,

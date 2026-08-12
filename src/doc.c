@@ -5,16 +5,20 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef enum { OP_INSERT, OP_DELETE } OpKind;
+typedef enum { OP_INSERT, OP_DELETE, OP_REPLACE } OpKind;
 
 /* An undo record stores enough to invert the operation. For INSERT we store
  * the position + the inserted text (to delete it on undo). For DELETE we
- * store the position + the deleted text (to re-insert on undo). */
+ * store the position + the deleted text (to re-insert on undo). For REPLACE
+ * we store the deleted span (text/len) and the replacement (ins/ins_len) so a
+ * programmatic replace undoes/redoes as ONE step. */
 typedef struct {
     OpKind   kind;
     size_t   pos;
-    char    *text;     /* inserted text, or deleted text */
+    char    *text;     /* inserted text, or deleted text (or deleted span) */
     size_t   len;
+    char    *ins;      /* REPLACE: replacement text */
+    size_t   ins_len;  /* REPLACE: replacement length */
 } Op;
 
 #define UNDO_CAP 64
@@ -34,14 +38,29 @@ struct Doc {
 
 static void *xrealloc(void *p, size_t n) { void *r = realloc(p, n?n:1); if(!r) abort(); return r; }
 
-static void op_free(Op *o) { free(o->text); o->text = NULL; o->len = 0; }
+static void op_free(Op *o) {
+    free(o->text); o->text = NULL; o->len = 0;
+    free(o->ins);  o->ins = NULL;  o->ins_len = 0;
+}
 
 static Op make_op(OpKind k, size_t pos, const char *text, size_t len) {
     Op o; o.kind = k; o.pos = pos; o.len = len;
     o.text = len ? xrealloc(NULL, len) : NULL;
     if (len) memcpy(o.text, text, len);
+    o.ins = NULL; o.ins_len = 0;
     return o;
 }
+
+static Op make_op_replace(size_t pos, const char *old, size_t oldlen,
+                          const char *neu, size_t neulen) {
+    Op o = make_op(OP_REPLACE, pos, old, oldlen);
+    o.ins = neulen ? xrealloc(NULL, neulen) : NULL;
+    if (neulen) memcpy(o.ins, neu, neulen);
+    o.ins_len = neulen;
+    return o;
+}
+
+static void push_undo(Doc *d, Op o);   /* defined below doc_replace */
 
 Doc *doc_create(const char *text) {
     Doc *d = xrealloc(NULL, sizeof *d);
@@ -72,9 +91,20 @@ size_t doc_line_byte_start(const Doc *d, size_t line) {
     return buf_line_start(d->buf, line);
 }
 void doc_replace(Doc *d, size_t from, size_t to, const char *text) {
+    /* Record ONE undo op (OP_REPLACE: deleted span + replacement) so undo/redo
+     * restores exactly — GUI_MATHEMATICS 'user control & freedom' (Nielsen #3). */
+    size_t newlen = text ? strlen(text) : 0;
+    size_t oldlen = (to > from) ? to - from : 0;
+    /* capture deleted text */
+    char *oldbuf = oldlen ? xrealloc(NULL, oldlen) : NULL;
+    for (size_t i = 0; i < oldlen; i++)
+        oldbuf[i] = buf_char_at(d->buf, from + i);
+    push_undo(d, make_op_replace(from, oldbuf, oldlen, text ? text : "", newlen));
+    free(oldbuf);
+    /* apply */
     if (to > from) buf_delete(d->buf, from, to - from);
-    if (text && *text) buf_insert(d->buf, from, text, strlen(text));
-    d->cursor = from + (text ? strlen(text) : 0);
+    if (newlen) buf_insert(d->buf, from, text, newlen);
+    d->cursor = from + newlen;
     d->anchor = d->cursor;
 }
 
@@ -131,6 +161,11 @@ void doc_undo(Doc *d) {
     if (o.kind == OP_INSERT) {
         buf_delete(d->buf, o.pos, o.len);
         if (o.pos <= d->cursor) d->cursor -= o.len;
+    } else if (o.kind == OP_REPLACE) {
+        /* delete the replacement, restore the original span */
+        buf_delete(d->buf, o.pos, o.ins_len);
+        if (o.len) buf_insert(d->buf, o.pos, o.text, o.len);
+        d->cursor = o.pos + o.len;
     } else { /* DELETE: re-insert */
         buf_insert(d->buf, o.pos, o.text, o.len);
         if (o.pos <= d->cursor) d->cursor += o.len;
@@ -151,6 +186,11 @@ void doc_redo(Doc *d) {
     if (o.kind == OP_INSERT) {
         buf_insert(d->buf, o.pos, o.text, o.len);
         if (o.pos <= d->cursor) d->cursor += o.len;
+    } else if (o.kind == OP_REPLACE) {
+        /* delete the original span, re-apply the replacement */
+        buf_delete(d->buf, o.pos, o.len);
+        if (o.ins_len) buf_insert(d->buf, o.pos, o.ins, o.ins_len);
+        d->cursor = o.pos + o.ins_len;
     } else { /* DELETE: delete again */
         buf_delete(d->buf, o.pos, o.len);
         if (o.pos <= d->cursor) d->cursor -= o.len;
