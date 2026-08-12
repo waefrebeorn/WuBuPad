@@ -197,6 +197,10 @@ set_tests_properties(gui_parity PROPERTIES RUN_SERIAL TRUE TIMEOUT 60)
 add_test(NAME wcag COMMAND python3 ${CMAKE_SOURCE_DIR}/../tooling/wcag_palette.py)
 set_tests_properties(wcag PROPERTIES LABELS "accessibility;gui")
 
+# Designer-ratio gate: type scale, vertical rhythm, spacing grid, hit-targets.
+add_test(NAME design_ratios COMMAND python3 ${CMAKE_SOURCE_DIR}/../tooling/design_ratios.py wubupad)
+set_tests_properties(design_ratios PROPERTIES LABELS "design;gui")
+
 # Graphics backend test (only meaningful when gfx is linked; test guards itself
 # by returning PASS-skip if SDL/FreeType were unavailable at build time).
 if(SDL2_FOUND AND FREETYPE_FOUND)
