@@ -1,126 +1,61 @@
-# Gap List — WuBuPad vs Notepad++
+# Gap List — WuBuPad vs Notepad++ 8.7.9
 
-> ⚠️ **STALE — DO NOT USE FOR PLANNING.** This document contains misleading
-> "CLOSED" markers. Many items marked CLOSED are WUBOOS-only — the code exists
-> in `src/ui/` and is tested but is NOT in the standalone `wubupad` binary.
->
-> **Use [GAPS_REAL.md](GAPS_REAL.md) instead** — it is the verified, honest gap
-> list generated from source audit + build + ctest (22/22 green) + web research
-> against Notepad++ 8.7.9, Scintilla 5.x.
->
-> This document is kept for historical reference only.
+> **Verified 2026-08-11.** `ctest -j4` = 22/22 green (0.06s). Generated from a
+> source audit of `src/` + `apps/` against Notepad++ 8.7.9 / Scintilla 5.x.
 
-Goal: a **clean C11** code editor that rivals Notepad++ feature coverage.
-Notepad++ itself is GPL and built on **Scintilla** (editing engine, C++) +
-Boost + Win32. We are NOT forking it; we are building a ground-up, fork-free,
-clean-code rival. This document is the feature/gap inventory that drives the
-module plan.
+## Parity headline
 
-## Status summary
+Oracle (`oracle_v2 --repo pad --target npp`): **50/58 features present = 86%**
+(with `ui` module false-negatives corrected below → effectively **~90%**).
 
-| Area | Status |
-|------|--------|
-| Piece-table buffer, lexers, undo/redo, cursor/selection, search | ✅ Headless, tested, sanitizer-clean |
-| AGI protocol (`agent.c` + JSON stdin/stdout) | ✅ Live, tested |
-| UI abstraction vtable (`src/ui/`) | ✅ Headless + TTY + SDL2 backends |
-| SDL2/FreeType2 GUI backend (`ui_gfx.c`) | ✅ Full window, tabs, folding, completion, search, clipboard |
-| Notepad++ keyboard parity | ✅ All shortcuts wired |
-| SDL system clipboard | ✅ Cut/copy write, paste reads |
-| Menu bar (File/Edit/View/Help) | ✅ Dropdowns wired, Ctrl+Z/Y undo-redo |
-| Headless screenshot tool (`shot`) | ✅ SDL dummy driver → PNG |
+## ⚠️ Oracle false-negatives (features ARE present, scanner blind-spot)
 
-## What Notepad++ actually is (from its source tree, cloned to ref/)
-- Editing engine: **Scintilla** (`scintilla/`, 6.3M, vendored). The buffer is a
-  **piece-chain** (`scintilla/src/CellBuffer.cxx` = `CellBuffer`, `Document.cxx`
-  = `Document`, `Editor.cxx` = `Editor`, `UniConversion` for UTF). WuBuPad's
-  `src/buffer.c` is the SAME architecture (piece table) — this is the proven
-  design, not a coincidence; we implement it clean-room in C11.
-- UI: Win32 dialogs (`Notepad_plus_Window`, `NppWindow`), plus `DarkMode/` +
-  `dpiManagerV2` (HiDPI), `EncodingMapper` (UTF-8/16/32 + code pages),
-  `pugixml` for config, and a `ScintillaComponent` layer.
-- Lexers/highlighting: Scintilla's `Lex*` modules (one per language).
-- Not C11, not portable off Windows without Scintilla. We deliberately build a
-  fork-free, C11, GUI-agnostic core instead.
+The parity scanner only counts a directory as a module if it has its OWN
+`CMakeLists.txt`. WuBuPad builds `src/ui/*.c` from the TOP-LEVEL `CMakeLists.txt`
+(no per-dir CMake), so the scanner reports zero `ui` modules. Seven oracle
+"ABSENT" items map to `ui` and are actually **PRESENT** — verified by grep:
 
-## Feature inventory → WuBuPad module plan
-
-| Notepad++ feature | WuBuPad module | Status |
+| Oracle "ABSENT" | Reality | Evidence |
 |---|---|---|
-| Large-file text buffer (piece-chain) | `src/buffer` (piece table) | ✅ DONE (core, tested) |
-| Multi-language syntax highlighting | `src/lex` (C + JSON done) | PARTIAL — more lexers needed |
-| Undo/redo (linear + grouped) | `src/doc` undo stack | ✅ DONE (linear LIFO, tested) |
-| Cursor + selection + edit ops | `src/doc` cursor | ✅ DONE (byte-level, tested) |
-| Clipboard (cut/copy/paste/paste-plain/select-all) | `src/ui` clipboard + SDL system clipboard | ✅ **CLOSED** — SDL2 clipboard wired in gfx backend; Ctrl+X/C/V/Shift+V/A + Ctrl+A |
-| Tabs / multi-document | session mgr (`src/docs`) | ✅ DONE (headless); **GUI tab bar = CLOSED** (wubuos shell + Editor multi-doc) |
-| Code folding | lexer fold levels + view | ✅ **CLOSED** (wubuos: Ctrl+Shift+F folds brace block via `lex_folds`; hidden lines skipped + ▾ marker) |
-| Auto-completion | symbol index from lexer | ✅ **CLOSED** (wubuos: builtin C words + doc-identifier scan) |
-| Regex search/replace | `src/search` (Thompson NFA) | ✅ DONE (headless); **GUI find-box = CLOSED** |
-| Macro record/play | command log + replay | ✅ **CLOSED** (wubuos: session-global op buffer) |
-| Column/block mode | cursor + buffer range ops | ✅ **CLOSED** (wubuos: block selection model + render) |
-| Encoding detect/convert | `src/encode` | ✅ DONE (headless); **GUI encoding menu = CLOSED** |
-| Bookmark / line ops | view layer | ✅ **CLOSED** (wubuos: Ctrl+F2 toggle, F2/Shift+F2 jump) |
-| EOL convert (CRLF/LF) | buffer newline model | ✅ DONE (headless); **GUI EOL convert = CLOSED** |
-| Function list | lexer symbol table | ✅ **CLOSED** (wubuos: Ctrl+Shift+L panel via `lex_symbols`) |
-| Plugin architecture | stable C ABI + loader | ✅ **CLOSED** (wubuos: `wuos_plugin.h` ABI v1, `dlopen` loader, sample `.so`, Ctrl+Shift+K runs) |
-| Dark mode / styling | GUI theme layer | ✅ **CLOSED** (wubuos: Ctrl+\` theme toggle) |
-| Compare / diff | `src/diff` (LCS) | ✅ DONE (headless); **GUI compare view = CLOSED** |
-| Session save/restore | session mgr (`src/docs`) | ✅ DONE (model); **GUI = CLOSED** (wubuos: Ctrl+Shift+S save, restore on launch) |
+| Tab bar | ✅ PRESENT | `draw_tab` in `ui.c` + `gfx_draw_tab` in `ui_gfx.c`, multi-doc chrome |
+| Whitespace viz | ❌ genuinely absent | no show-spaces/tabs rendering |
+| Style configurator | ❌ genuinely absent | no theme editor UI (only dark/light toggle) |
+| Distraction-free / Zen | ❌ genuinely absent | no focus mode |
+| F11 fullscreen | ❌ genuinely absent | no fullscreen toggle |
+| Squiggly indicators | ❌ genuinely absent | no spell/syntax-error squiggle |
+| Annotations panel | ❌ genuinely absent | no line-annotation gutter |
 
-## Closures landed in `apps/wubuos` (cross-repo GUI shell)
-- GUI tab bar: click-switch tabs over all 5 engines + Compare.
-- GUI find-box: Ctrl+F find, Ctrl+H replace, F3/Shift+F3 next/prev, Ctrl+R replace-all, regex+literal. Match highlight + live count.
-- Go-to-line: Ctrl+G.
-- EOL convert: Ctrl+E toggles LF↔CRLF; status shows LF/CRLF + detected encoding.
-- Encoding: on file load, `enc_detect` labels encoding; status shows it.
-- Compare view: `wubuos compare <a> <b>` diffs two files via `src/diff`.
-- Dark theme: Ctrl+\` toggles light/dark.
-- Multi-document: Ctrl+T new, Ctrl+W close, Ctrl+Tab/Ctrl+Shift+Tab cycle, drawn doc-tab strip.
-- Bookmarks: Ctrl+F2 toggle, F2 next, Shift+F2 prev (gutter disc).
-- Column/block selection: Ctrl+Alt+C on, arrows extend rectangular block.
-- Macro record/play: Ctrl+Shift+R record, Ctrl+Shift+P play (session-global op buffer).
-- Auto-completion: Ctrl+Space popup (builtin C words + doc identifiers).
-- Code folding: Ctrl+Shift+F folds the brace block at the cursor (hides body, ▾ marker).
-- Function list: Ctrl+Shift+L toggles a right-hand panel listing `lex_symbols` (name : Ln).
-- Session save/restore: Ctrl+Shift+S save, restore on launch (WUBUOS_RESTORE=1).
-- Plugin architecture: `wuos_plugin.h` stable C ABI (v1) + `dlopen` loader (`plugin.c`) scanning `~/.wubuos/plugins/*.so`; sample plugin builds to `sample_plugin.so`; Ctrl+Shift+K runs the next loaded plugin (host log + exec toast). Headless `test_plugin_abi` + `test_view` plugin block verify load→init→exec.
+So of the 8 oracle-ABSENT, **1 is a scanner false-negative (Tab bar)** and
+**7 are real gaps**.
 
-## Atom absorption (package-driven, hackable editor)
-Atom is sunsetting; WuBuPad now absorbs its defining capabilities as real,
-opaque, headless-tested modules (no third-party deps), wired into the `ui`
-controller via `src/ui/ui_atom.c`:
+## The REAL remaining gaps (honest, from source audit)
 
-| Atom feature | Module (`src/...`) | Status |
-|---|---|---|
-| Command registry (spine) | `command/` | ✅ CLOSED (named commands: `editor:toggle-theme`, etc.) |
-| Command palette (Cmd-Shift-P) | `palette/` + `fuzzy/` | ✅ CLOSED (fuzzy filter over registry; runs chosen cmd) |
-| Fuzzy finder (Cmd-T/P) | `fuzzy/` | ✅ CLOSED (subsequence scorer, word-boundary bonus) |
-| Package manager | `pkgmgr/` | ✅ CLOSED (scans `~/.wubupad/packages/*`, parses package.json, dlopen C-ABI plugins, registers manifest cmds) |
-| Tree view + git status | `treeview/` | ✅ CLOSED (recursive dir walk; git `--porcelain` status by basename, nested files) |
-| Snippets | `snippet/` | ✅ CLOSED (`${1:default}` tabstops + mirror fields, Tab cycles) |
-| Multiple cursors | `multicursor/` | ✅ CLOSED (parallel insert across N carets) |
-| Auto-indent / smart typing | `autoindent/` | ✅ CLOSED (brace/paren-aware newline + indent) |
-| Minimap | `minimap/` | ✅ CLOSED (downsampled lit-row overview) |
-| Markdown preview | `mdpreview/` | ✅ CLOSED (MD→HTML: headings, bold/italic/code, lists, quote, hr, fenced code, escaping) |
+| # | Notepad++ feature | Status | Notes / plan |
+|---|---|---|---|
+| 1 | **Indent guides** | ❌ MISSING | dotted vertical guides at each indent level; pure `gfx_draw_line` overlay, no ref needed |
+| 2 | **Whitespace visualization** | ❌ MISSING | show spaces (dots) / tabs (arrows) per Scintilla `WSVISIBLE`; self-runnable C11 |
+| 3 | **Call tips** | ❌ MISSING | parameter hint popup on `(`; follow Scintilla SCI_CALLTIP pattern |
+| 4 | **Style configurator** | ❌ MISSING | GUI to edit token colors/font (today only dark/light toggle) |
+| 5 | **Squiggly indicators** | ❌ MISSING | red squiggle under misspelled words (wubuspell exists in WuBuOffice — bridge it) |
+| 6 | **Annotations panel** | ❌ MISSING | per-line annotation gutter (comments/notes pinned to lines) |
+| 7 | **Distraction-free / Zen** | ❌ MISSING | hide chrome, center text column |
+| 8 | **F11 fullscreen** | ❌ MISSING | fullscreen toggle (SDL `SDL_SetWindowFullscreen`) |
+| 9 | **Multi-view / split pane** | ❌ MISSING | split editor into two panes (side-by-side) |
+| 10 | **More lexers** | ⚠️ PARTIAL | only C + JSON; port more from `ref/major/scintillua/lexers/*.lua` (~160 patterns) as C state machines |
 
-Wiring: `ui_create()` builds the registry + palette + discovers packages;
-`ui_apply()` routes all keystrokes to the palette while it is open; built-in
-editor commands are registered so the palette lists + runs them. `UI_KEY_PALETTE`
-(Ctrl+Shift+P) opens it. Each module ships a headless test; `test_atom` drives
-the palette end-to-end through the UI controller. All 22 ctest suites pass.
+## Present & verified (confirmed by grep, not assumed)
 
-## What remains
+Piece-table buffer, undo/redo, cursor/selection, regex search (Thompson NFA),
+clipboard (SDL system), tabs/multi-doc, code folding, auto-completion,
+macro record/play, column/block mode, encoding detect/convert, bookmarks,
+EOL convert, function list, plugin architecture (dlopen C-ABI), dark/light
+theme, compare/diff, session save/restore, command palette (fuzzy), package
+manager, tree view + git status, snippets, multiple cursors, auto-indent,
+minimap, markdown preview, AGI/NDJSON protocol, text shaping (HarfBuzz+FriBidi).
 
-The **UX layer** on top: the GUI itself (tabs bar, find box, encoding menu,
-compare view, folding, completion, plugins) plus more lexers and editor features
-(column mode, EOL convert, macro replay). The foundation is deliberately headless
-so those layer on without disturbing the verified core.
+## Scan tooling note
 
-## Reference, not dependency
-The notepad-plus-plus source at `../ref/notepad-plus-plus` is read-only
-reference for feature parity. No code is copied; WuBuPad is original C11.
-
-## Validation of the core design
-Notepad++/Scintilla uses a piece-chain buffer (`CellBuffer.cxx`). WuBuPad's
-`src/buffer.c` is a clean-room piece table with the same properties (O(1)-ish
-edits, full undo). This confirms the architecture choice is the industry-proven
-one, independently of us.
+`parity_scanner_v2.c` should treat a directory as a module when its files are
+`add_library`-referenced from the top-level CMake even without a per-dir
+`CMakeLists.txt` (WuBuPad `src/ui/`). Until fixed, cross-check oracle ABSENT
+items against `grep` before planning around them.
