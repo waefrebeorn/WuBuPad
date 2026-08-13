@@ -125,10 +125,16 @@ int shape_line(ShapeCtx *ctx, const char *utf8, int dir,
         while (j < n && levels[order[j]] == lvl) j++;
         /* visual run = source indices order[i..j-1] */
         hb_buffer_reset(b);
-        for (int k = i; k < j; k++)
-            /* item_offset = order[k] so each added char's cluster = its source
-             * index; lets us recover the original codepoint for fallback. */
-            hb_buffer_add_codepoints(b, ucs + order[k], 1, order[k], 1);
+        /* Copy the run's codepoints (visual order) into a temp array and add
+         * them in ONE call so HarfBuzz assigns clusters 0..(run_len-1) in
+         * visual order; map cluster -> source index via order[] to recover the
+         * original codepoint for fallback. Adding one-at-a-time with
+         * item_offset=order[k] corrupted shaping. */
+        hb_codepoint_t runcp[512];
+        int rn = j - i;
+        if (rn > 512) rn = 512;
+        for (int k = 0; k < rn; k++) runcp[k] = ucs[order[i + k]];
+        hb_buffer_add_codepoints(b, runcp, rn, 0, rn);
         hb_buffer_guess_segment_properties(b); /* script + dir + lang */
         /* force direction by run level parity for safety */
         hb_buffer_set_direction(b, (lvl & 1) ? HB_DIRECTION_RTL : HB_DIRECTION_LTR);
@@ -142,10 +148,11 @@ int shape_line(ShapeCtx *ctx, const char *utf8, int dir,
                 gly[gc].x = pen_x + (pos[g].x_offset >> 6);
                 gly[gc].y = (pos[g].y_offset >> 6);
                 gly[gc].ax = (pos[g].x_advance >> 6);
-                /* cluster = source index (set via item_offset); recover the
-                 * original codepoint for missing-glyph fallback. */
+                /* cluster = visual position within this run; map to the source
+                 * index via order[] to recover the original codepoint. */
                 unsigned int cl = info[g].cluster;
-                gly[gc].cp = (cl < (unsigned int)n) ? ucs[cl] : 0;
+                int src = (cl < (unsigned int)rn) ? order[i + cl] : -1;
+                gly[gc].cp = (src >= 0 && src < n) ? ucs[src] : 0;
             }
             if (gc < cap) gc++;
             pen_x += (pos[g].x_advance >> 6);
