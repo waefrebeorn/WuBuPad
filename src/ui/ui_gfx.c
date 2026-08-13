@@ -31,7 +31,8 @@ typedef enum {
 typedef struct {
     SDL_Texture *tex;     /* per-glyph texture (works on any driver) */
     int w, h;             /* glyph bitmap size */
-    int bx, by;           /* glyph bbox offset (bx also stashes codepoint) */
+    int bx, by;           /* glyph bbox offset */
+    int cp;               /* codepoint this glyph caches (for O(1) lookup) */
     int ax;               /* advance x */
     int gidx;             /* FreeType glyph index (-1 if cached by codepoint) */
 } Glyph;
@@ -60,9 +61,8 @@ static UIRGB gfx_color(GFX *g, UIToken tok);
 
 /* --- glyph cache (per-glyph texture; no render-target needed) --- */
 static int gfx_glyph_index(GFX *g, Uint32 cp) {
-    /* cp stashed in bx field for O(1) find via linear scan (editor glyph set small) */
     for (int i = 0; i < g->nglyphs; i++)
-        if ((Uint32)g->glyphs[i].bx == cp) return i;
+        if ((Uint32)g->glyphs[i].cp == cp) return i;
     return -1;
 }
 static int gfx_glyph_index_by_glyph(GFX *g, unsigned int gidx) {
@@ -82,7 +82,8 @@ static int gfx_cache_glyph(GFX *g, Uint32 cp) {
     int w = slot->bitmap.width, h = slot->bitmap.rows;
     Glyph *gl = &g->glyphs[g->nglyphs];
     memset(gl, 0, sizeof *gl);
-    gl->bx = (int)cp;  /* stash codepoint */
+    gl->cp = (int)cp;               /* stash codepoint for O(1) lookup */
+    gl->bx = slot->bitmap_left;     /* REAL bitmap x-offset (was overwritten by cp!) */
     gl->gidx = -1;
     gl->ax = (int)(slot->advance.x >> 6);
     gl->w = w; gl->h = h;
@@ -125,7 +126,8 @@ static int gfx_cache_glyph_index(GFX *g, unsigned int gidx) {
     Glyph *gl = &g->glyphs[g->nglyphs];
     memset(gl, 0, sizeof *gl);
     gl->gidx = (int)gidx;
-    gl->bx = -1;
+    gl->bx = slot->bitmap_left;   /* REAL bitmap x-offset */
+    gl->cp = -1;                  /* cached by glyph index, not codepoint */
     gl->ax = (int)(slot->advance.x >> 6);
     gl->w = w; gl->h = h;
     gl->by = slot->bitmap_top;
