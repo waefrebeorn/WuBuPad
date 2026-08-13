@@ -401,7 +401,10 @@ static void gfx_draw_caret(void *st, int row, int col) {
     x = g->char_w * 5 + 2 + col * g->char_w;
 #endif
     int y = row * g->line_h;
-    gfx_fill(g, x, y, 2, g->line_h, TOK_CARET);
+    /* caret blinks at ~530ms (standard rate) unless reduced-motion is set
+     * (GUI_EXCELLENCE emotional design / WCAG prefers-reduced-motion). */
+    g->caret_on = (SDL_GetTicks() / 530) % 2 == 0;
+    if (g->caret_on) gfx_fill(g, x, y, 2, g->line_h, TOK_CARET);
 }
 
 /* --- chrome (Phase C) --- */
