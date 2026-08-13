@@ -24,6 +24,7 @@ typedef struct {
     int x;                /* pen x at which to draw (pixels, visual order) */
     int y;                /* vertical offset from baseline (pixels) */
     int ax;               /* x advance (pixels) */
+    unsigned int cp;      /* original codepoint (for missing-glyph fallback) */
 } ShapeGlyph;
 
 /* dir: 0 = auto (use FriBidi paragraph detection), 1 = LTR, 2 = RTL. */

@@ -126,7 +126,9 @@ int shape_line(ShapeCtx *ctx, const char *utf8, int dir,
         /* visual run = source indices order[i..j-1] */
         hb_buffer_reset(b);
         for (int k = i; k < j; k++)
-            hb_buffer_add_codepoints(b, ucs + order[k], 1, 0, 1);
+            /* item_offset = order[k] so each added char's cluster = its source
+             * index; lets us recover the original codepoint for fallback. */
+            hb_buffer_add_codepoints(b, ucs + order[k], 1, order[k], 1);
         hb_buffer_guess_segment_properties(b); /* script + dir + lang */
         /* force direction by run level parity for safety */
         hb_buffer_set_direction(b, (lvl & 1) ? HB_DIRECTION_RTL : HB_DIRECTION_LTR);
@@ -140,6 +142,10 @@ int shape_line(ShapeCtx *ctx, const char *utf8, int dir,
                 gly[gc].x = pen_x + (pos[g].x_offset >> 6);
                 gly[gc].y = (pos[g].y_offset >> 6);
                 gly[gc].ax = (pos[g].x_advance >> 6);
+                /* cluster = source index (set via item_offset); recover the
+                 * original codepoint for missing-glyph fallback. */
+                unsigned int cl = info[g].cluster;
+                gly[gc].cp = (cl < (unsigned int)n) ? ucs[cl] : 0;
             }
             if (gc < cap) gc++;
             pen_x += (pos[g].x_advance >> 6);

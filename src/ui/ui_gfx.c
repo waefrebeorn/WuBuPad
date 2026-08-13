@@ -45,6 +45,8 @@ typedef struct {
     SDL_Renderer *ren;
     FT_Library ft;
     FT_Face face;
+    FT_Face fb_face;         /* fallback face (DejaVuSans) for glyphs the mono
+                              * font lacks (emoji, some symbols) -> no .notdef */
     Glyph *glyphs;
     int nglyphs, capglyph;
     UITheme *theme;        /* semantic palette (persisted) */
@@ -78,8 +80,13 @@ static int gfx_cache_glyph(GFX *g, Uint32 cp) {
         if (!ng) return -1;
         g->glyphs = ng; g->capglyph = nc;
     }
-    if (FT_Load_Char(g->face, cp ? cp : (Uint32)' ', FT_LOAD_RENDER) != 0) return -1;
-    FT_GlyphSlot slot = g->face->glyph;
+    /* Use the fallback face when the primary mono font has no glyph for cp
+     * (FT_Get_Char_Index returns 0 for a missing glyph -> would be .notdef). */
+    FT_Face use = g->face;
+    if (g->fb_face && FT_Get_Char_Index(g->face, cp ? cp : (Uint32)' ') == 0)
+        use = g->fb_face;
+    if (FT_Load_Char(use, cp ? cp : (Uint32)' ', FT_LOAD_RENDER) != 0) return -1;
+    FT_GlyphSlot slot = use->glyph;
     int w = slot->bitmap.width, h = slot->bitmap.rows;
     Glyph *gl = &g->glyphs[g->nglyphs];
     memset(gl, 0, sizeof *gl);
@@ -250,6 +257,17 @@ static int gfx_init(void **st, int cols, int rows) {
     if (g->asc <= 0) g->asc = FONT_PT * 3 / 4;
     if (g->desc <= 0) g->desc = FONT_PT / 4;
 
+    /* Fallback face for glyphs the mono font lacks (emoji, box-drawing, some
+     * symbols). DejaVuSans has the widest local coverage; a missing glyph
+     * otherwise renders as a .notdef tofu box. Best-effort: ignore failure. */
+    g->fb_face = NULL;
+    if (FT_New_Face(g->ft, "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+                    0, &g->fb_face) != 0) {
+        g->fb_face = NULL;   /* no fallback available */
+    } else {
+        FT_Set_Pixel_Sizes(g->fb_face, 0, FONT_PT);
+    }
+
 #ifdef WUBUPAD_WITH_SHAPE
     g->shape = shape_create(g->face);
     if (!g->shape) fprintf(stderr, "gfx_init: shaping unavailable (HarfBuzz/FriBidi)\n");
@@ -290,6 +308,7 @@ static void gfx_destroy(void *st) {
     if (g->shape) shape_destroy(g->shape);
     if (g->caret_x) free(g->caret_x);
     if (g->face) FT_Done_Face(g->face);
+    if (g->fb_face) FT_Done_Face(g->fb_face);
     if (g->ft) FT_Done_FreeType(g->ft);
     if (g->ren) SDL_DestroyRenderer(g->ren);
     if (g->win) SDL_DestroyWindow(g->win);
@@ -380,7 +399,17 @@ static void gfx_draw_line(void *st, int row, const char *text, int len, int kind
             /* gly[i].x is ALREADY the absolute pen offset (HarfBuzz accumulates
              * x_advance into it), so draw at px0 + x. Do NOT also accumulate a
              * separate px by ax or every glyph is double-spaced. */
-            gfx_blit_glyph(g, gly[i].glyph, px0 + gly[i].x, py + gly[i].y, tok);
+            /* A shaped glyph whose primary-face index is missing (0) means the
+             * mono font lacks this codepoint -> render it via the codepoint
+             * fallback (which uses the DejaVuSans fallback face) instead of a
+             * .notdef tofu box. */
+            if (g->fb_face && gly[i].glyph == 0 && gly[i].cp != 0) {
+                gfx_draw_glyph(g, (int)gly[i].cp, px0 + gly[i].x,
+                               py + gly[i].y, tok);
+            } else {
+                gfx_blit_glyph(g, gly[i].glyph, px0 + gly[i].x,
+                               py + gly[i].y, tok);
+            }
         }
         free(gly);
         return;
