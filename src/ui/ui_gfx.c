@@ -40,6 +40,7 @@ typedef struct {
 typedef struct {
     int cols, rows;
     int char_w, line_h;    /* metrics (monospace-ish) */
+    int asc, desc;         /* font ascender/descender (px), for centering */
     SDL_Window *win;
     SDL_Renderer *ren;
     FT_Library ft;
@@ -186,6 +187,16 @@ static int gfx_draw_glyph(GFX *g, int cp, int px, int py, UIToken tok) {
     return gl->ax;
 }
 
+/* baseline y that centers a glyph's ink (baseline-asc .. baseline+desc)
+ * inside the row band [row*line_h, (row+1)*line_h]. gfx_draw_glyph takes
+ * py where the baseline is py+line_h, so solve for that py. */
+static int gfx_center_py(GFX *g, int row) {
+    int band = row * g->line_h;
+    int ink  = g->asc + g->desc;
+    int baseline = band + (g->line_h - ink) / 2 + g->asc;
+    return baseline - g->line_h;
+}
+
 /* --- vtable --- */
 static int gfx_init(void **st, int cols, int rows) {
     GFX *g = calloc(1, sizeof *g);
@@ -234,6 +245,10 @@ static int gfx_init(void **st, int cols, int rows) {
         }
     }
     FT_Set_Pixel_Sizes(g->face, 0, FONT_PT);
+    g->asc  = g->face->size->metrics.ascender  >> 6;
+    g->desc = -(g->face->size->metrics.descender) >> 6;
+    if (g->asc <= 0) g->asc = FONT_PT * 3 / 4;
+    if (g->desc <= 0) g->desc = FONT_PT / 4;
 
 #ifdef WUBUPAD_WITH_SHAPE
     g->shape = shape_create(g->face);
@@ -428,12 +443,13 @@ static void gfx_draw_menu(void *st, int row) {
     const char *items[] = {"File","Edit","Search","View","Format","Language",
                            "Settings","Tools","Macro","Run","Help"};
     int px = 8;
+    int cpy = gfx_center_py(g, row);
     for (size_t i = 0; i < sizeof items / sizeof items[0]; i++) {
         const char *it = items[i];
         size_t n = strlen(it);
         for (size_t j = 0; j < n; j++)
             gfx_draw_glyph(g, (unsigned char)it[j], px + (int)j * g->char_w,
-                           py, TOK_TEXT);
+                           cpy, TOK_TEXT);
         px += (int)(n * g->char_w) + g->char_w * 2;   /* label + 2-cell gap */
     }
 }
@@ -478,9 +494,9 @@ static void gfx_draw_tab(void *st, int tab_row, int index,
      * primary, inactive is dim. Don't rely on color alone (spec §1/§5). */
     int tx = index * tw + 12;
     /* gfx_draw_glyph treats its y as a BASELINE (dst.y = y - by + line_h),
-     * same convention as gfx_draw_line passing row*line_h. Pass py so the tab
-     * label centers in the row exactly like editor text. */
-    int ty = py;
+     * same convention as gfx_draw_line passing row*line_h. Use center_py so
+     * the tab label centers in the row band (not sits on the bottom). */
+    int ty = gfx_center_py(g, tab_row);
     if (dirty) {
         gfx_fill(g, tx, py + (g->line_h - g->char_w) / 2 + 2, 6, 6, TOK_ACCENT);
         tx += 12;
@@ -502,8 +518,9 @@ static void gfx_draw_status(void *st, int row, const char *text) {
     gfx_fill(g, 0, py, g->cols * g->char_w, 1, TOK_BORDER);
     int n = (int)strlen(text ? text : "");
     int px = 12;   /* 4px-grid inset */
+    int cpy = gfx_center_py(g, row);
     for (int i = 0; i < n; i++)
-        gfx_draw_glyph(g, (unsigned char)text[i], px + i * g->char_w, py, TOK_TEXT_DIM);
+        gfx_draw_glyph(g, (unsigned char)text[i], px + i * g->char_w, cpy, TOK_TEXT_DIM);
 }
 
 static void gfx_set_theme(void *st, int dark) {
@@ -531,8 +548,9 @@ static void gfx_draw_symbols(void *st, int row, const char *name, int line_no) {
     snprintf(buf, sizeof buf, "%s : L%d", name ? name : "", line_no + 1);
     int n = (int)strlen(buf);
     int px = x0 + 8;
+    int cpy = gfx_center_py(g, row);
     for (int i = 0; i < n; i++)
-        gfx_draw_glyph(g, (unsigned char)buf[i], px + i * g->char_w, py, TOK_TEXT_DIM);
+        gfx_draw_glyph(g, (unsigned char)buf[i], px + i * g->char_w, cpy, TOK_TEXT_DIM);
 }
 
 static void gfx_present(void *st) {
