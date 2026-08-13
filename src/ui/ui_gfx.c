@@ -361,10 +361,11 @@ static void gfx_draw_line(void *st, int row, const char *text, int len, int kind
         int cap = (n > 4096) ? 4096 : n;
         int *cx = (g->caret_x && cap > 0) ? &g->caret_x[(size_t)row * 4096] : NULL;
         shape_line(g->shape, text ? text : "", SHAPE_DIR_AUTO, &gly, &gc, &adv, cx, cap);
-        int px = px0;
         for (int i = 0; i < gc; i++) {
-            gfx_blit_glyph(g, gly[i].glyph, px + gly[i].x, py + gly[i].y, tok);
-            px += gly[i].ax;
+            /* gly[i].x is ALREADY the absolute pen offset (HarfBuzz accumulates
+             * x_advance into it), so draw at px0 + x. Do NOT also accumulate a
+             * separate px by ax or every glyph is double-spaced. */
+            gfx_blit_glyph(g, gly[i].glyph, px0 + gly[i].x, py + gly[i].y, tok);
         }
         free(gly);
         return;
