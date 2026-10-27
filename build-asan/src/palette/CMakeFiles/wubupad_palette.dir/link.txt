@@ -1,0 +1,2 @@
+/usr/bin/ar qc libwubupad_palette.a CMakeFiles/wubupad_palette.dir/palette.c.o
+/usr/bin/ranlib libwubupad_palette.a

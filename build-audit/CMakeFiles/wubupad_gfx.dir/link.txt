@@ -1,0 +1,2 @@
+/usr/bin/ar qc libwubupad_gfx.a CMakeFiles/wubupad_gfx.dir/src/ui/ui_gfx.c.o
+/usr/bin/ranlib libwubupad_gfx.a

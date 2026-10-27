@@ -1,0 +1,2 @@
+/usr/bin/ar qc libwubupad_ui.a CMakeFiles/wubupad_ui.dir/src/ui/ui.c.o CMakeFiles/wubupad_ui.dir/src/ui/ui_headless.c.o CMakeFiles/wubupad_ui.dir/src/ui/ui_tty.c.o CMakeFiles/wubupad_ui.dir/src/ui/ui_find.c.o CMakeFiles/wubupad_ui.dir/src/ui/ui_theme.c.o CMakeFiles/wubupad_ui.dir/src/ui/ui_macro.c.o CMakeFiles/wubupad_ui.dir/src/ui/ui_atom.c.o
+/usr/bin/ranlib libwubupad_ui.a

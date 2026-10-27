@@ -1,0 +1,1 @@
+/usr/bin/cc -O3 -DNDEBUG CMakeFiles/test_treeview.dir/test_treeview.c.o -o test_treeview  libwubupad_treeview.a 

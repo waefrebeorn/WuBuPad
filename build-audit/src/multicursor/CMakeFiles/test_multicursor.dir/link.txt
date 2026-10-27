@@ -1,0 +1,1 @@
+/usr/bin/cc -O3 -DNDEBUG CMakeFiles/test_multicursor.dir/test_multicursor.c.o -o test_multicursor  libwubupad_multicursor.a 

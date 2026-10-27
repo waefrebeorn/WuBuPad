@@ -1,0 +1,2 @@
+/usr/bin/ar qc libwubupad_agent.a CMakeFiles/wubupad_agent.dir/src/agent.c.o
+/usr/bin/ranlib libwubupad_agent.a

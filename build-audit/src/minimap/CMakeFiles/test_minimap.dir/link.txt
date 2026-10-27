@@ -1,0 +1,1 @@
+/usr/bin/cc -O3 -DNDEBUG CMakeFiles/test_minimap.dir/test_minimap.c.o -o test_minimap  libwubupad_minimap.a 

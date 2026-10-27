@@ -1,0 +1,1 @@
+/usr/bin/cc -O3 -DNDEBUG CMakeFiles/test_pkgmgr.dir/test_pkgmgr.c.o -o test_pkgmgr  libwubupad_pkgmgr.a ../../libwubupad_core.a ../command/libwubupad_command.a 

@@ -1,0 +1,1 @@
+/usr/bin/cc -O3 -DNDEBUG CMakeFiles/test_fuzzy.dir/test_fuzzy.c.o -o test_fuzzy  libwubupad_fuzzy.a 

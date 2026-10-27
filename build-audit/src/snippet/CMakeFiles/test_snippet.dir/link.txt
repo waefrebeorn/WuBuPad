@@ -1,0 +1,1 @@
+/usr/bin/cc -O3 -DNDEBUG CMakeFiles/test_snippet.dir/test_snippet.c.o -o test_snippet  libwubupad_snippet.a 

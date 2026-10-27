@@ -1,0 +1,1 @@
+/usr/bin/cc -O3 -DNDEBUG CMakeFiles/test_command.dir/test_command.c.o -o test_command  libwubupad_command.a 

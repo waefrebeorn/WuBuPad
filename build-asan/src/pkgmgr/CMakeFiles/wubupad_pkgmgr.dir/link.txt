@@ -1,0 +1,2 @@
+/usr/bin/ar qc libwubupad_pkgmgr.a CMakeFiles/wubupad_pkgmgr.dir/pkgmgr.c.o
+/usr/bin/ranlib libwubupad_pkgmgr.a

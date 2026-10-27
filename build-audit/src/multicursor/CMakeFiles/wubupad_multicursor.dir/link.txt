@@ -1,0 +1,2 @@
+/usr/bin/ar qc libwubupad_multicursor.a CMakeFiles/wubupad_multicursor.dir/multicursor.c.o
+/usr/bin/ranlib libwubupad_multicursor.a

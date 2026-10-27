@@ -1,0 +1,2 @@
+/usr/bin/ar qc libwubupad_snippet.a CMakeFiles/wubupad_snippet.dir/snippet.c.o
+/usr/bin/ranlib libwubupad_snippet.a

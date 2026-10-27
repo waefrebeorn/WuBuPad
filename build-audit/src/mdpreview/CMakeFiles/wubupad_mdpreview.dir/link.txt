@@ -1,0 +1,2 @@
+/usr/bin/ar qc libwubupad_mdpreview.a CMakeFiles/wubupad_mdpreview.dir/mdpreview.c.o
+/usr/bin/ranlib libwubupad_mdpreview.a

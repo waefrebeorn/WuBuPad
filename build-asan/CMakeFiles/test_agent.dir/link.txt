@@ -1,0 +1,1 @@
+/usr/bin/cc -g -fsanitize=address,undefined CMakeFiles/test_agent.dir/tests/test_agent.c.o -o test_agent  libwubupad_agent.a libwubupad_core.a 

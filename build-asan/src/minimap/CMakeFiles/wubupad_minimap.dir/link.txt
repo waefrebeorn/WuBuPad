@@ -1,0 +1,2 @@
+/usr/bin/ar qc libwubupad_minimap.a CMakeFiles/wubupad_minimap.dir/minimap.c.o
+/usr/bin/ranlib libwubupad_minimap.a

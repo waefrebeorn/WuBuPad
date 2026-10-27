@@ -1,0 +1,1 @@
+/usr/bin/cc -O3 -DNDEBUG CMakeFiles/test_autoindent.dir/test_autoindent.c.o -o test_autoindent  libwubupad_autoindent.a 

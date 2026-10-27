@@ -1,0 +1,2 @@
+/usr/bin/ar qc libwubupad_fuzzy.a CMakeFiles/wubupad_fuzzy.dir/fuzzy.c.o
+/usr/bin/ranlib libwubupad_fuzzy.a

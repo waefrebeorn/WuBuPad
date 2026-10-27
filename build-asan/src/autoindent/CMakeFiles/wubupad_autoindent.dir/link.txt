@@ -1,0 +1,2 @@
+/usr/bin/ar qc libwubupad_autoindent.a CMakeFiles/wubupad_autoindent.dir/autoindent.c.o
+/usr/bin/ranlib libwubupad_autoindent.a

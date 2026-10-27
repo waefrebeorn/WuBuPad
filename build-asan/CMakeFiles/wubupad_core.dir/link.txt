@@ -1,0 +1,2 @@
+/usr/bin/ar qc libwubupad_core.a CMakeFiles/wubupad_core.dir/src/buffer.c.o CMakeFiles/wubupad_core.dir/src/lex.c.o CMakeFiles/wubupad_core.dir/src/doc.c.o CMakeFiles/wubupad_core.dir/src/search.c.o CMakeFiles/wubupad_core.dir/src/transform.c.o CMakeFiles/wubupad_core.dir/src/encode.c.o CMakeFiles/wubupad_core.dir/src/diff.c.o CMakeFiles/wubupad_core.dir/src/docs.c.o CMakeFiles/wubupad_core.dir/src/json.c.o CMakeFiles/wubupad_core.dir/src/complete.c.o
+/usr/bin/ranlib libwubupad_core.a

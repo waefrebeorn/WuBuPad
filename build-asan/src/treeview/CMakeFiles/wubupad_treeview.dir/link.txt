@@ -1,0 +1,2 @@
+/usr/bin/ar qc libwubupad_treeview.a CMakeFiles/wubupad_treeview.dir/treeview.c.o
+/usr/bin/ranlib libwubupad_treeview.a

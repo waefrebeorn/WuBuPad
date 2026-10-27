@@ -1,0 +1,1 @@
+/usr/bin/cc -g -fsanitize=address,undefined CMakeFiles/test_lex_fold.dir/tests/test_lex_fold.c.o -o test_lex_fold  libwubupad_core.a 

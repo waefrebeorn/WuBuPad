@@ -1,0 +1,1 @@
+/usr/bin/cc -O3 -DNDEBUG CMakeFiles/test_palette.dir/test_palette.c.o -o test_palette  libwubupad_palette.a ../command/libwubupad_command.a ../fuzzy/libwubupad_fuzzy.a 

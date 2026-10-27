@@ -1,0 +1,2 @@
+/usr/bin/ar qc libwubupad_command.a CMakeFiles/wubupad_command.dir/command.c.o
+/usr/bin/ranlib libwubupad_command.a

@@ -1,0 +1,1 @@
+/usr/bin/cc -g -fsanitize=address,undefined CMakeFiles/test_shape.dir/tests/test_shape.c.o -o test_shape  libwubushape.a /usr/lib/x86_64-linux-gnu/libfreetype.so -lharfbuzz -lfribidi 

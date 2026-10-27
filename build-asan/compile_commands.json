@@ -1,0 +1,404 @@
+[
+{
+  "directory": "/home/wubu/WuBuPad/build-asan",
+  "command": "/usr/bin/cc -DWUBUPAD_WITH_GFX=1 -DWUBUPAD_WITH_SHAPE=1 -I/home/wubu/WuBuPad/src -g -std=gnu11 -fsanitize=address,undefined -fno-omit-frame-pointer -O1 -g -o CMakeFiles/wubupad_core.dir/src/buffer.c.o -c /home/wubu/WuBuPad/src/buffer.c",
+  "file": "/home/wubu/WuBuPad/src/buffer.c",
+  "output": "CMakeFiles/wubupad_core.dir/src/buffer.c.o"
+},
+{
+  "directory": "/home/wubu/WuBuPad/build-asan",
+  "command": "/usr/bin/cc -DWUBUPAD_WITH_GFX=1 -DWUBUPAD_WITH_SHAPE=1 -I/home/wubu/WuBuPad/src -g -std=gnu11 -fsanitize=address,undefined -fno-omit-frame-pointer -O1 -g -o CMakeFiles/wubupad_core.dir/src/lex.c.o -c /home/wubu/WuBuPad/src/lex.c",
+  "file": "/home/wubu/WuBuPad/src/lex.c",
+  "output": "CMakeFiles/wubupad_core.dir/src/lex.c.o"
+},
+{
+  "directory": "/home/wubu/WuBuPad/build-asan",
+  "command": "/usr/bin/cc -DWUBUPAD_WITH_GFX=1 -DWUBUPAD_WITH_SHAPE=1 -I/home/wubu/WuBuPad/src -g -std=gnu11 -fsanitize=address,undefined -fno-omit-frame-pointer -O1 -g -o CMakeFiles/wubupad_core.dir/src/doc.c.o -c /home/wubu/WuBuPad/src/doc.c",
+  "file": "/home/wubu/WuBuPad/src/doc.c",
+  "output": "CMakeFiles/wubupad_core.dir/src/doc.c.o"
+},
+{
+  "directory": "/home/wubu/WuBuPad/build-asan",
+  "command": "/usr/bin/cc -DWUBUPAD_WITH_GFX=1 -DWUBUPAD_WITH_SHAPE=1 -I/home/wubu/WuBuPad/src -g -std=gnu11 -fsanitize=address,undefined -fno-omit-frame-pointer -O1 -g -o CMakeFiles/wubupad_core.dir/src/search.c.o -c /home/wubu/WuBuPad/src/search.c",
+  "file": "/home/wubu/WuBuPad/src/search.c",
+  "output": "CMakeFiles/wubupad_core.dir/src/search.c.o"
+},
+{
+  "directory": "/home/wubu/WuBuPad/build-asan",
+  "command": "/usr/bin/cc -DWUBUPAD_WITH_GFX=1 -DWUBUPAD_WITH_SHAPE=1 -I/home/wubu/WuBuPad/src -g -std=gnu11 -fsanitize=address,undefined -fno-omit-frame-pointer -O1 -g -o CMakeFiles/wubupad_core.dir/src/transform.c.o -c /home/wubu/WuBuPad/src/transform.c",
+  "file": "/home/wubu/WuBuPad/src/transform.c",
+  "output": "CMakeFiles/wubupad_core.dir/src/transform.c.o"
+},
+{
+  "directory": "/home/wubu/WuBuPad/build-asan",
+  "command": "/usr/bin/cc -DWUBUPAD_WITH_GFX=1 -DWUBUPAD_WITH_SHAPE=1 -I/home/wubu/WuBuPad/src -g -std=gnu11 -fsanitize=address,undefined -fno-omit-frame-pointer -O1 -g -o CMakeFiles/wubupad_core.dir/src/encode.c.o -c /home/wubu/WuBuPad/src/encode.c",
+  "file": "/home/wubu/WuBuPad/src/encode.c",
+  "output": "CMakeFiles/wubupad_core.dir/src/encode.c.o"
+},
+{
+  "directory": "/home/wubu/WuBuPad/build-asan",
+  "command": "/usr/bin/cc -DWUBUPAD_WITH_GFX=1 -DWUBUPAD_WITH_SHAPE=1 -I/home/wubu/WuBuPad/src -g -std=gnu11 -fsanitize=address,undefined -fno-omit-frame-pointer -O1 -g -o CMakeFiles/wubupad_core.dir/src/diff.c.o -c /home/wubu/WuBuPad/src/diff.c",
+  "file": "/home/wubu/WuBuPad/src/diff.c",
+  "output": "CMakeFiles/wubupad_core.dir/src/diff.c.o"
+},
+{
+  "directory": "/home/wubu/WuBuPad/build-asan",
+  "command": "/usr/bin/cc -DWUBUPAD_WITH_GFX=1 -DWUBUPAD_WITH_SHAPE=1 -I/home/wubu/WuBuPad/src -g -std=gnu11 -fsanitize=address,undefined -fno-omit-frame-pointer -O1 -g -o CMakeFiles/wubupad_core.dir/src/docs.c.o -c /home/wubu/WuBuPad/src/docs.c",
+  "file": "/home/wubu/WuBuPad/src/docs.c",
+  "output": "CMakeFiles/wubupad_core.dir/src/docs.c.o"
+},
+{
+  "directory": "/home/wubu/WuBuPad/build-asan",
+  "command": "/usr/bin/cc -DWUBUPAD_WITH_GFX=1 -DWUBUPAD_WITH_SHAPE=1 -I/home/wubu/WuBuPad/src -g -std=gnu11 -fsanitize=address,undefined -fno-omit-frame-pointer -O1 -g -o CMakeFiles/wubupad_core.dir/src/json.c.o -c /home/wubu/WuBuPad/src/json.c",
+  "file": "/home/wubu/WuBuPad/src/json.c",
+  "output": "CMakeFiles/wubupad_core.dir/src/json.c.o"
+},
+{
+  "directory": "/home/wubu/WuBuPad/build-asan",
+  "command": "/usr/bin/cc -DWUBUPAD_WITH_GFX=1 -DWUBUPAD_WITH_SHAPE=1 -I/home/wubu/WuBuPad/src -g -std=gnu11 -fsanitize=address,undefined -fno-omit-frame-pointer -O1 -g -o CMakeFiles/wubupad_core.dir/src/complete.c.o -c /home/wubu/WuBuPad/src/complete.c",
+  "file": "/home/wubu/WuBuPad/src/complete.c",
+  "output": "CMakeFiles/wubupad_core.dir/src/complete.c.o"
+},
+{
+  "directory": "/home/wubu/WuBuPad/build-asan",
+  "command": "/usr/bin/cc -DWUBUPAD_WITH_GFX=1 -DWUBUPAD_WITH_SHAPE=1 -I/home/wubu/WuBuPad/src -g -std=gnu11 -fsanitize=address,undefined -fno-omit-frame-pointer -O1 -g -o CMakeFiles/wubupad_agent.dir/src/agent.c.o -c /home/wubu/WuBuPad/src/agent.c",
+  "file": "/home/wubu/WuBuPad/src/agent.c",
+  "output": "CMakeFiles/wubupad_agent.dir/src/agent.c.o"
+},
+{
+  "directory": "/home/wubu/WuBuPad/build-asan",
+  "command": "/usr/bin/cc -DWUBUPAD_WITH_GFX=1 -DWUBUPAD_WITH_SHAPE=1 -I/home/wubu/WuBuPad/src -g -std=gnu11 -fsanitize=address,undefined -fno-omit-frame-pointer -O1 -g -o CMakeFiles/test_core.dir/tests/test_core.c.o -c /home/wubu/WuBuPad/tests/test_core.c",
+  "file": "/home/wubu/WuBuPad/tests/test_core.c",
+  "output": "CMakeFiles/test_core.dir/tests/test_core.c.o"
+},
+{
+  "directory": "/home/wubu/WuBuPad/build-asan",
+  "command": "/usr/bin/cc -DWUBUPAD_WITH_GFX=1 -DWUBUPAD_WITH_SHAPE=1 -I/home/wubu/WuBuPad/src -g -std=gnu11 -fsanitize=address,undefined -fno-omit-frame-pointer -O1 -g -o CMakeFiles/test_lex_fold.dir/tests/test_lex_fold.c.o -c /home/wubu/WuBuPad/tests/test_lex_fold.c",
+  "file": "/home/wubu/WuBuPad/tests/test_lex_fold.c",
+  "output": "CMakeFiles/test_lex_fold.dir/tests/test_lex_fold.c.o"
+},
+{
+  "directory": "/home/wubu/WuBuPad/build-asan",
+  "command": "/usr/bin/cc -DWUBUPAD_WITH_GFX=1 -DWUBUPAD_WITH_SHAPE=1 -I/home/wubu/WuBuPad/src -g -std=gnu11 -fsanitize=address,undefined -fno-omit-frame-pointer -O1 -g -o CMakeFiles/test_lex_multi.dir/tests/test_lex_multi.c.o -c /home/wubu/WuBuPad/tests/test_lex_multi.c",
+  "file": "/home/wubu/WuBuPad/tests/test_lex_multi.c",
+  "output": "CMakeFiles/test_lex_multi.dir/tests/test_lex_multi.c.o"
+},
+{
+  "directory": "/home/wubu/WuBuPad/build-asan",
+  "command": "/usr/bin/cc -DWUBUPAD_WITH_GFX=1 -DWUBUPAD_WITH_SHAPE=1 -I/home/wubu/WuBuPad/src -g -std=gnu11 -fsanitize=address,undefined -fno-omit-frame-pointer -O1 -g -o CMakeFiles/test_transform.dir/tests/test_transform.c.o -c /home/wubu/WuBuPad/tests/test_transform.c",
+  "file": "/home/wubu/WuBuPad/tests/test_transform.c",
+  "output": "CMakeFiles/test_transform.dir/tests/test_transform.c.o"
+},
+{
+  "directory": "/home/wubu/WuBuPad/build-asan",
+  "command": "/usr/bin/cc -DWUBUPAD_WITH_GFX=1 -DWUBUPAD_WITH_SHAPE=1 -I/home/wubu/WuBuPad/src/command -I/home/wubu/WuBuPad/src/fuzzy -I/home/wubu/WuBuPad/src/palette -I/home/wubu/WuBuPad/src/pkgmgr -I/home/wubu/WuBuPad/src/treeview -I/home/wubu/WuBuPad/src/snippet -I/home/wubu/WuBuPad/src/multicursor -I/home/wubu/WuBuPad/src/autoindent -I/home/wubu/WuBuPad/src/minimap -I/home/wubu/WuBuPad/src/mdpreview -I/home/wubu/WuBuPad/src -g -std=gnu11 -fsanitize=address,undefined -fno-omit-frame-pointer -O1 -g -o CMakeFiles/wubupad_atom.dir/src/command/command.c.o -c /home/wubu/WuBuPad/src/command/command.c",
+  "file": "/home/wubu/WuBuPad/src/command/command.c",
+  "output": "CMakeFiles/wubupad_atom.dir/src/command/command.c.o"
+},
+{
+  "directory": "/home/wubu/WuBuPad/build-asan",
+  "command": "/usr/bin/cc -DWUBUPAD_WITH_GFX=1 -DWUBUPAD_WITH_SHAPE=1 -I/home/wubu/WuBuPad/src/command -I/home/wubu/WuBuPad/src/fuzzy -I/home/wubu/WuBuPad/src/palette -I/home/wubu/WuBuPad/src/pkgmgr -I/home/wubu/WuBuPad/src/treeview -I/home/wubu/WuBuPad/src/snippet -I/home/wubu/WuBuPad/src/multicursor -I/home/wubu/WuBuPad/src/autoindent -I/home/wubu/WuBuPad/src/minimap -I/home/wubu/WuBuPad/src/mdpreview -I/home/wubu/WuBuPad/src -g -std=gnu11 -fsanitize=address,undefined -fno-omit-frame-pointer -O1 -g -o CMakeFiles/wubupad_atom.dir/src/fuzzy/fuzzy.c.o -c /home/wubu/WuBuPad/src/fuzzy/fuzzy.c",
+  "file": "/home/wubu/WuBuPad/src/fuzzy/fuzzy.c",
+  "output": "CMakeFiles/wubupad_atom.dir/src/fuzzy/fuzzy.c.o"
+},
+{
+  "directory": "/home/wubu/WuBuPad/build-asan",
+  "command": "/usr/bin/cc -DWUBUPAD_WITH_GFX=1 -DWUBUPAD_WITH_SHAPE=1 -I/home/wubu/WuBuPad/src/command -I/home/wubu/WuBuPad/src/fuzzy -I/home/wubu/WuBuPad/src/palette -I/home/wubu/WuBuPad/src/pkgmgr -I/home/wubu/WuBuPad/src/treeview -I/home/wubu/WuBuPad/src/snippet -I/home/wubu/WuBuPad/src/multicursor -I/home/wubu/WuBuPad/src/autoindent -I/home/wubu/WuBuPad/src/minimap -I/home/wubu/WuBuPad/src/mdpreview -I/home/wubu/WuBuPad/src -g -std=gnu11 -fsanitize=address,undefined -fno-omit-frame-pointer -O1 -g -o CMakeFiles/wubupad_atom.dir/src/palette/palette.c.o -c /home/wubu/WuBuPad/src/palette/palette.c",
+  "file": "/home/wubu/WuBuPad/src/palette/palette.c",
+  "output": "CMakeFiles/wubupad_atom.dir/src/palette/palette.c.o"
+},
+{
+  "directory": "/home/wubu/WuBuPad/build-asan",
+  "command": "/usr/bin/cc -DWUBUPAD_WITH_GFX=1 -DWUBUPAD_WITH_SHAPE=1 -I/home/wubu/WuBuPad/src/command -I/home/wubu/WuBuPad/src/fuzzy -I/home/wubu/WuBuPad/src/palette -I/home/wubu/WuBuPad/src/pkgmgr -I/home/wubu/WuBuPad/src/treeview -I/home/wubu/WuBuPad/src/snippet -I/home/wubu/WuBuPad/src/multicursor -I/home/wubu/WuBuPad/src/autoindent -I/home/wubu/WuBuPad/src/minimap -I/home/wubu/WuBuPad/src/mdpreview -I/home/wubu/WuBuPad/src -g -std=gnu11 -fsanitize=address,undefined -fno-omit-frame-pointer -O1 -g -o CMakeFiles/wubupad_atom.dir/src/pkgmgr/pkgmgr.c.o -c /home/wubu/WuBuPad/src/pkgmgr/pkgmgr.c",
+  "file": "/home/wubu/WuBuPad/src/pkgmgr/pkgmgr.c",
+  "output": "CMakeFiles/wubupad_atom.dir/src/pkgmgr/pkgmgr.c.o"
+},
+{
+  "directory": "/home/wubu/WuBuPad/build-asan",
+  "command": "/usr/bin/cc -DWUBUPAD_WITH_GFX=1 -DWUBUPAD_WITH_SHAPE=1 -I/home/wubu/WuBuPad/src/command -I/home/wubu/WuBuPad/src/fuzzy -I/home/wubu/WuBuPad/src/palette -I/home/wubu/WuBuPad/src/pkgmgr -I/home/wubu/WuBuPad/src/treeview -I/home/wubu/WuBuPad/src/snippet -I/home/wubu/WuBuPad/src/multicursor -I/home/wubu/WuBuPad/src/autoindent -I/home/wubu/WuBuPad/src/minimap -I/home/wubu/WuBuPad/src/mdpreview -I/home/wubu/WuBuPad/src -g -std=gnu11 -fsanitize=address,undefined -fno-omit-frame-pointer -O1 -g -o CMakeFiles/wubupad_atom.dir/src/treeview/treeview.c.o -c /home/wubu/WuBuPad/src/treeview/treeview.c",
+  "file": "/home/wubu/WuBuPad/src/treeview/treeview.c",
+  "output": "CMakeFiles/wubupad_atom.dir/src/treeview/treeview.c.o"
+},
+{
+  "directory": "/home/wubu/WuBuPad/build-asan",
+  "command": "/usr/bin/cc -DWUBUPAD_WITH_GFX=1 -DWUBUPAD_WITH_SHAPE=1 -I/home/wubu/WuBuPad/src/command -I/home/wubu/WuBuPad/src/fuzzy -I/home/wubu/WuBuPad/src/palette -I/home/wubu/WuBuPad/src/pkgmgr -I/home/wubu/WuBuPad/src/treeview -I/home/wubu/WuBuPad/src/snippet -I/home/wubu/WuBuPad/src/multicursor -I/home/wubu/WuBuPad/src/autoindent -I/home/wubu/WuBuPad/src/minimap -I/home/wubu/WuBuPad/src/mdpreview -I/home/wubu/WuBuPad/src -g -std=gnu11 -fsanitize=address,undefined -fno-omit-frame-pointer -O1 -g -o CMakeFiles/wubupad_atom.dir/src/snippet/snippet.c.o -c /home/wubu/WuBuPad/src/snippet/snippet.c",
+  "file": "/home/wubu/WuBuPad/src/snippet/snippet.c",
+  "output": "CMakeFiles/wubupad_atom.dir/src/snippet/snippet.c.o"
+},
+{
+  "directory": "/home/wubu/WuBuPad/build-asan",
+  "command": "/usr/bin/cc -DWUBUPAD_WITH_GFX=1 -DWUBUPAD_WITH_SHAPE=1 -I/home/wubu/WuBuPad/src/command -I/home/wubu/WuBuPad/src/fuzzy -I/home/wubu/WuBuPad/src/palette -I/home/wubu/WuBuPad/src/pkgmgr -I/home/wubu/WuBuPad/src/treeview -I/home/wubu/WuBuPad/src/snippet -I/home/wubu/WuBuPad/src/multicursor -I/home/wubu/WuBuPad/src/autoindent -I/home/wubu/WuBuPad/src/minimap -I/home/wubu/WuBuPad/src/mdpreview -I/home/wubu/WuBuPad/src -g -std=gnu11 -fsanitize=address,undefined -fno-omit-frame-pointer -O1 -g -o CMakeFiles/wubupad_atom.dir/src/multicursor/multicursor.c.o -c /home/wubu/WuBuPad/src/multicursor/multicursor.c",
+  "file": "/home/wubu/WuBuPad/src/multicursor/multicursor.c",
+  "output": "CMakeFiles/wubupad_atom.dir/src/multicursor/multicursor.c.o"
+},
+{
+  "directory": "/home/wubu/WuBuPad/build-asan",
+  "command": "/usr/bin/cc -DWUBUPAD_WITH_GFX=1 -DWUBUPAD_WITH_SHAPE=1 -I/home/wubu/WuBuPad/src/command -I/home/wubu/WuBuPad/src/fuzzy -I/home/wubu/WuBuPad/src/palette -I/home/wubu/WuBuPad/src/pkgmgr -I/home/wubu/WuBuPad/src/treeview -I/home/wubu/WuBuPad/src/snippet -I/home/wubu/WuBuPad/src/multicursor -I/home/wubu/WuBuPad/src/autoindent -I/home/wubu/WuBuPad/src/minimap -I/home/wubu/WuBuPad/src/mdpreview -I/home/wubu/WuBuPad/src -g -std=gnu11 -fsanitize=address,undefined -fno-omit-frame-pointer -O1 -g -o CMakeFiles/wubupad_atom.dir/src/autoindent/autoindent.c.o -c /home/wubu/WuBuPad/src/autoindent/autoindent.c",
+  "file": "/home/wubu/WuBuPad/src/autoindent/autoindent.c",
+  "output": "CMakeFiles/wubupad_atom.dir/src/autoindent/autoindent.c.o"
+},
+{
+  "directory": "/home/wubu/WuBuPad/build-asan",
+  "command": "/usr/bin/cc -DWUBUPAD_WITH_GFX=1 -DWUBUPAD_WITH_SHAPE=1 -I/home/wubu/WuBuPad/src/command -I/home/wubu/WuBuPad/src/fuzzy -I/home/wubu/WuBuPad/src/palette -I/home/wubu/WuBuPad/src/pkgmgr -I/home/wubu/WuBuPad/src/treeview -I/home/wubu/WuBuPad/src/snippet -I/home/wubu/WuBuPad/src/multicursor -I/home/wubu/WuBuPad/src/autoindent -I/home/wubu/WuBuPad/src/minimap -I/home/wubu/WuBuPad/src/mdpreview -I/home/wubu/WuBuPad/src -g -std=gnu11 -fsanitize=address,undefined -fno-omit-frame-pointer -O1 -g -o CMakeFiles/wubupad_atom.dir/src/minimap/minimap.c.o -c /home/wubu/WuBuPad/src/minimap/minimap.c",
+  "file": "/home/wubu/WuBuPad/src/minimap/minimap.c",
+  "output": "CMakeFiles/wubupad_atom.dir/src/minimap/minimap.c.o"
+},
+{
+  "directory": "/home/wubu/WuBuPad/build-asan",
+  "command": "/usr/bin/cc -DWUBUPAD_WITH_GFX=1 -DWUBUPAD_WITH_SHAPE=1 -I/home/wubu/WuBuPad/src/command -I/home/wubu/WuBuPad/src/fuzzy -I/home/wubu/WuBuPad/src/palette -I/home/wubu/WuBuPad/src/pkgmgr -I/home/wubu/WuBuPad/src/treeview -I/home/wubu/WuBuPad/src/snippet -I/home/wubu/WuBuPad/src/multicursor -I/home/wubu/WuBuPad/src/autoindent -I/home/wubu/WuBuPad/src/minimap -I/home/wubu/WuBuPad/src/mdpreview -I/home/wubu/WuBuPad/src -g -std=gnu11 -fsanitize=address,undefined -fno-omit-frame-pointer -O1 -g -o CMakeFiles/wubupad_atom.dir/src/mdpreview/mdpreview.c.o -c /home/wubu/WuBuPad/src/mdpreview/mdpreview.c",
+  "file": "/home/wubu/WuBuPad/src/mdpreview/mdpreview.c",
+  "output": "CMakeFiles/wubupad_atom.dir/src/mdpreview/mdpreview.c.o"
+},
+{
+  "directory": "/home/wubu/WuBuPad/build-asan",
+  "command": "/usr/bin/cc -DWUBUPAD_WITH_GFX=1 -DWUBUPAD_WITH_SHAPE=1 -I/home/wubu/WuBuPad/src -I/home/wubu/WuBuPad/src/command -I/home/wubu/WuBuPad/src/fuzzy -I/home/wubu/WuBuPad/src/palette -I/home/wubu/WuBuPad/src/pkgmgr -I/home/wubu/WuBuPad/src/treeview -I/home/wubu/WuBuPad/src/snippet -I/home/wubu/WuBuPad/src/multicursor -I/home/wubu/WuBuPad/src/autoindent -I/home/wubu/WuBuPad/src/minimap -I/home/wubu/WuBuPad/src/mdpreview -g -std=gnu11 -fsanitize=address,undefined -fno-omit-frame-pointer -O1 -g -o CMakeFiles/wubupad_ui.dir/src/ui/ui.c.o -c /home/wubu/WuBuPad/src/ui/ui.c",
+  "file": "/home/wubu/WuBuPad/src/ui/ui.c",
+  "output": "CMakeFiles/wubupad_ui.dir/src/ui/ui.c.o"
+},
+{
+  "directory": "/home/wubu/WuBuPad/build-asan",
+  "command": "/usr/bin/cc -DWUBUPAD_WITH_GFX=1 -DWUBUPAD_WITH_SHAPE=1 -I/home/wubu/WuBuPad/src -I/home/wubu/WuBuPad/src/command -I/home/wubu/WuBuPad/src/fuzzy -I/home/wubu/WuBuPad/src/palette -I/home/wubu/WuBuPad/src/pkgmgr -I/home/wubu/WuBuPad/src/treeview -I/home/wubu/WuBuPad/src/snippet -I/home/wubu/WuBuPad/src/multicursor -I/home/wubu/WuBuPad/src/autoindent -I/home/wubu/WuBuPad/src/minimap -I/home/wubu/WuBuPad/src/mdpreview -g -std=gnu11 -fsanitize=address,undefined -fno-omit-frame-pointer -O1 -g -o CMakeFiles/wubupad_ui.dir/src/ui/ui_headless.c.o -c /home/wubu/WuBuPad/src/ui/ui_headless.c",
+  "file": "/home/wubu/WuBuPad/src/ui/ui_headless.c",
+  "output": "CMakeFiles/wubupad_ui.dir/src/ui/ui_headless.c.o"
+},
+{
+  "directory": "/home/wubu/WuBuPad/build-asan",
+  "command": "/usr/bin/cc -DWUBUPAD_WITH_GFX=1 -DWUBUPAD_WITH_SHAPE=1 -I/home/wubu/WuBuPad/src -I/home/wubu/WuBuPad/src/command -I/home/wubu/WuBuPad/src/fuzzy -I/home/wubu/WuBuPad/src/palette -I/home/wubu/WuBuPad/src/pkgmgr -I/home/wubu/WuBuPad/src/treeview -I/home/wubu/WuBuPad/src/snippet -I/home/wubu/WuBuPad/src/multicursor -I/home/wubu/WuBuPad/src/autoindent -I/home/wubu/WuBuPad/src/minimap -I/home/wubu/WuBuPad/src/mdpreview -g -std=gnu11 -fsanitize=address,undefined -fno-omit-frame-pointer -O1 -g -o CMakeFiles/wubupad_ui.dir/src/ui/ui_tty.c.o -c /home/wubu/WuBuPad/src/ui/ui_tty.c",
+  "file": "/home/wubu/WuBuPad/src/ui/ui_tty.c",
+  "output": "CMakeFiles/wubupad_ui.dir/src/ui/ui_tty.c.o"
+},
+{
+  "directory": "/home/wubu/WuBuPad/build-asan",
+  "command": "/usr/bin/cc -DWUBUPAD_WITH_GFX=1 -DWUBUPAD_WITH_SHAPE=1 -I/home/wubu/WuBuPad/src -I/home/wubu/WuBuPad/src/command -I/home/wubu/WuBuPad/src/fuzzy -I/home/wubu/WuBuPad/src/palette -I/home/wubu/WuBuPad/src/pkgmgr -I/home/wubu/WuBuPad/src/treeview -I/home/wubu/WuBuPad/src/snippet -I/home/wubu/WuBuPad/src/multicursor -I/home/wubu/WuBuPad/src/autoindent -I/home/wubu/WuBuPad/src/minimap -I/home/wubu/WuBuPad/src/mdpreview -g -std=gnu11 -fsanitize=address,undefined -fno-omit-frame-pointer -O1 -g -o CMakeFiles/wubupad_ui.dir/src/ui/ui_find.c.o -c /home/wubu/WuBuPad/src/ui/ui_find.c",
+  "file": "/home/wubu/WuBuPad/src/ui/ui_find.c",
+  "output": "CMakeFiles/wubupad_ui.dir/src/ui/ui_find.c.o"
+},
+{
+  "directory": "/home/wubu/WuBuPad/build-asan",
+  "command": "/usr/bin/cc -DWUBUPAD_WITH_GFX=1 -DWUBUPAD_WITH_SHAPE=1 -I/home/wubu/WuBuPad/src -I/home/wubu/WuBuPad/src/command -I/home/wubu/WuBuPad/src/fuzzy -I/home/wubu/WuBuPad/src/palette -I/home/wubu/WuBuPad/src/pkgmgr -I/home/wubu/WuBuPad/src/treeview -I/home/wubu/WuBuPad/src/snippet -I/home/wubu/WuBuPad/src/multicursor -I/home/wubu/WuBuPad/src/autoindent -I/home/wubu/WuBuPad/src/minimap -I/home/wubu/WuBuPad/src/mdpreview -g -std=gnu11 -fsanitize=address,undefined -fno-omit-frame-pointer -O1 -g -o CMakeFiles/wubupad_ui.dir/src/ui/ui_theme.c.o -c /home/wubu/WuBuPad/src/ui/ui_theme.c",
+  "file": "/home/wubu/WuBuPad/src/ui/ui_theme.c",
+  "output": "CMakeFiles/wubupad_ui.dir/src/ui/ui_theme.c.o"
+},
+{
+  "directory": "/home/wubu/WuBuPad/build-asan",
+  "command": "/usr/bin/cc -DWUBUPAD_WITH_GFX=1 -DWUBUPAD_WITH_SHAPE=1 -I/home/wubu/WuBuPad/src -I/home/wubu/WuBuPad/src/command -I/home/wubu/WuBuPad/src/fuzzy -I/home/wubu/WuBuPad/src/palette -I/home/wubu/WuBuPad/src/pkgmgr -I/home/wubu/WuBuPad/src/treeview -I/home/wubu/WuBuPad/src/snippet -I/home/wubu/WuBuPad/src/multicursor -I/home/wubu/WuBuPad/src/autoindent -I/home/wubu/WuBuPad/src/minimap -I/home/wubu/WuBuPad/src/mdpreview -g -std=gnu11 -fsanitize=address,undefined -fno-omit-frame-pointer -O1 -g -o CMakeFiles/wubupad_ui.dir/src/ui/ui_macro.c.o -c /home/wubu/WuBuPad/src/ui/ui_macro.c",
+  "file": "/home/wubu/WuBuPad/src/ui/ui_macro.c",
+  "output": "CMakeFiles/wubupad_ui.dir/src/ui/ui_macro.c.o"
+},
+{
+  "directory": "/home/wubu/WuBuPad/build-asan",
+  "command": "/usr/bin/cc -DWUBUPAD_WITH_GFX=1 -DWUBUPAD_WITH_SHAPE=1 -I/home/wubu/WuBuPad/src -I/home/wubu/WuBuPad/src/command -I/home/wubu/WuBuPad/src/fuzzy -I/home/wubu/WuBuPad/src/palette -I/home/wubu/WuBuPad/src/pkgmgr -I/home/wubu/WuBuPad/src/treeview -I/home/wubu/WuBuPad/src/snippet -I/home/wubu/WuBuPad/src/multicursor -I/home/wubu/WuBuPad/src/autoindent -I/home/wubu/WuBuPad/src/minimap -I/home/wubu/WuBuPad/src/mdpreview -g -std=gnu11 -fsanitize=address,undefined -fno-omit-frame-pointer -O1 -g -o CMakeFiles/wubupad_ui.dir/src/ui/ui_atom.c.o -c /home/wubu/WuBuPad/src/ui/ui_atom.c",
+  "file": "/home/wubu/WuBuPad/src/ui/ui_atom.c",
+  "output": "CMakeFiles/wubupad_ui.dir/src/ui/ui_atom.c.o"
+},
+{
+  "directory": "/home/wubu/WuBuPad/build-asan",
+  "command": "/usr/bin/cc -DWUBUPAD_WITH_GFX=1 -DWUBUPAD_WITH_SHAPE=1 -I/home/wubu/WuBuPad/src -I/usr/include/harfbuzz -I/usr/include/freetype2 -I/usr/include/libpng16 -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I/usr/include/fribidi -g -std=gnu11 -fsanitize=address,undefined -fno-omit-frame-pointer -O1 -g -o CMakeFiles/wubushape.dir/src/shape/shape.c.o -c /home/wubu/WuBuPad/src/shape/shape.c",
+  "file": "/home/wubu/WuBuPad/src/shape/shape.c",
+  "output": "CMakeFiles/wubushape.dir/src/shape/shape.c.o"
+},
+{
+  "directory": "/home/wubu/WuBuPad/build-asan",
+  "command": "/usr/bin/cc -DWUBUPAD_WITH_GFX=1 -DWUBUPAD_WITH_SHAPE=1 -I/home/wubu/WuBuPad/src -I/home/wubu/WuBuPad/src/command -I/home/wubu/WuBuPad/src/fuzzy -I/home/wubu/WuBuPad/src/palette -I/home/wubu/WuBuPad/src/pkgmgr -I/home/wubu/WuBuPad/src/treeview -I/home/wubu/WuBuPad/src/snippet -I/home/wubu/WuBuPad/src/multicursor -I/home/wubu/WuBuPad/src/autoindent -I/home/wubu/WuBuPad/src/minimap -I/home/wubu/WuBuPad/src/mdpreview -I/usr/include/harfbuzz -I/usr/include/libpng16 -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I/usr/include/fribidi -isystem /usr/include/freetype2 -isystem /usr/include/SDL2 -g -std=gnu11 -fsanitize=address,undefined -fno-omit-frame-pointer -O1 -g -o CMakeFiles/wubupad_gfx.dir/src/ui/ui_gfx.c.o -c /home/wubu/WuBuPad/src/ui/ui_gfx.c",
+  "file": "/home/wubu/WuBuPad/src/ui/ui_gfx.c",
+  "output": "CMakeFiles/wubupad_gfx.dir/src/ui/ui_gfx.c.o"
+},
+{
+  "directory": "/home/wubu/WuBuPad/build-asan",
+  "command": "/usr/bin/cc -DWUBUPAD_WITH_GFX=1 -DWUBUPAD_WITH_SHAPE=1 -I/home/wubu/WuBuPad/src -I/home/wubu/WuBuPad/src/command -I/home/wubu/WuBuPad/src/fuzzy -I/home/wubu/WuBuPad/src/palette -I/home/wubu/WuBuPad/src/pkgmgr -I/home/wubu/WuBuPad/src/treeview -I/home/wubu/WuBuPad/src/snippet -I/home/wubu/WuBuPad/src/multicursor -I/home/wubu/WuBuPad/src/autoindent -I/home/wubu/WuBuPad/src/minimap -I/home/wubu/WuBuPad/src/mdpreview -I/usr/include/harfbuzz -I/usr/include/libpng16 -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I/usr/include/fribidi -isystem /usr/include/freetype2 -isystem /usr/include/SDL2 -g -std=gnu11 -fsanitize=address,undefined -fno-omit-frame-pointer -O1 -g -o CMakeFiles/wubupad.dir/apps/wubupad/main.c.o -c /home/wubu/WuBuPad/apps/wubupad/main.c",
+  "file": "/home/wubu/WuBuPad/apps/wubupad/main.c",
+  "output": "CMakeFiles/wubupad.dir/apps/wubupad/main.c.o"
+},
+{
+  "directory": "/home/wubu/WuBuPad/build-asan",
+  "command": "/usr/bin/cc -DWUBUPAD_WITH_GFX=1 -DWUBUPAD_WITH_SHAPE=1 -I/home/wubu/WuBuPad/src -I/home/wubu/WuBuPad/src/command -I/home/wubu/WuBuPad/src/fuzzy -I/home/wubu/WuBuPad/src/palette -I/home/wubu/WuBuPad/src/pkgmgr -I/home/wubu/WuBuPad/src/treeview -I/home/wubu/WuBuPad/src/snippet -I/home/wubu/WuBuPad/src/multicursor -I/home/wubu/WuBuPad/src/autoindent -I/home/wubu/WuBuPad/src/minimap -I/home/wubu/WuBuPad/src/mdpreview -I/usr/include/harfbuzz -I/usr/include/libpng16 -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I/usr/include/fribidi -isystem /usr/include/freetype2 -isystem /usr/include/SDL2 -g -std=gnu11 -fsanitize=address,undefined -fno-omit-frame-pointer -O1 -g -o CMakeFiles/wubupad.dir/apps/wubupad/smoke.c.o -c /home/wubu/WuBuPad/apps/wubupad/smoke.c",
+  "file": "/home/wubu/WuBuPad/apps/wubupad/smoke.c",
+  "output": "CMakeFiles/wubupad.dir/apps/wubupad/smoke.c.o"
+},
+{
+  "directory": "/home/wubu/WuBuPad/build-asan",
+  "command": "/usr/bin/cc -DWUBUPAD_WITH_GFX=1 -DWUBUPAD_WITH_SHAPE=1 -I/home/wubu/WuBuPad/src -I/home/wubu/WuBuPad/src/command -I/home/wubu/WuBuPad/src/fuzzy -I/home/wubu/WuBuPad/src/palette -I/home/wubu/WuBuPad/src/pkgmgr -I/home/wubu/WuBuPad/src/treeview -I/home/wubu/WuBuPad/src/snippet -I/home/wubu/WuBuPad/src/multicursor -I/home/wubu/WuBuPad/src/autoindent -I/home/wubu/WuBuPad/src/minimap -I/home/wubu/WuBuPad/src/mdpreview -I/usr/include/harfbuzz -I/usr/include/libpng16 -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I/usr/include/fribidi -isystem /usr/include/freetype2 -isystem /usr/include/SDL2 -g -std=gnu11 -fsanitize=address,undefined -fno-omit-frame-pointer -O1 -g -o CMakeFiles/shot.dir/apps/wubupad/shot.c.o -c /home/wubu/WuBuPad/apps/wubupad/shot.c",
+  "file": "/home/wubu/WuBuPad/apps/wubupad/shot.c",
+  "output": "CMakeFiles/shot.dir/apps/wubupad/shot.c.o"
+},
+{
+  "directory": "/home/wubu/WuBuPad/build-asan",
+  "command": "/usr/bin/cc -DWUBUPAD_WITH_GFX=1 -DWUBUPAD_WITH_SHAPE=1 -I/home/wubu/WuBuPad/src -I/home/wubu/WuBuPad/src/command -I/home/wubu/WuBuPad/src/fuzzy -I/home/wubu/WuBuPad/src/palette -I/home/wubu/WuBuPad/src/pkgmgr -I/home/wubu/WuBuPad/src/treeview -I/home/wubu/WuBuPad/src/snippet -I/home/wubu/WuBuPad/src/multicursor -I/home/wubu/WuBuPad/src/autoindent -I/home/wubu/WuBuPad/src/minimap -I/home/wubu/WuBuPad/src/mdpreview -g -std=gnu11 -fsanitize=address,undefined -fno-omit-frame-pointer -O1 -g -o CMakeFiles/test_atom.dir/tests/test_atom.c.o -c /home/wubu/WuBuPad/tests/test_atom.c",
+  "file": "/home/wubu/WuBuPad/tests/test_atom.c",
+  "output": "CMakeFiles/test_atom.dir/tests/test_atom.c.o"
+},
+{
+  "directory": "/home/wubu/WuBuPad/build-asan",
+  "command": "/usr/bin/cc -DWUBUPAD_WITH_GFX=1 -DWUBUPAD_WITH_SHAPE=1 -I/home/wubu/WuBuPad/src -I/home/wubu/WuBuPad/src/command -I/home/wubu/WuBuPad/src/fuzzy -I/home/wubu/WuBuPad/src/palette -I/home/wubu/WuBuPad/src/pkgmgr -I/home/wubu/WuBuPad/src/treeview -I/home/wubu/WuBuPad/src/snippet -I/home/wubu/WuBuPad/src/multicursor -I/home/wubu/WuBuPad/src/autoindent -I/home/wubu/WuBuPad/src/minimap -I/home/wubu/WuBuPad/src/mdpreview -g -std=gnu11 -fsanitize=address,undefined -fno-omit-frame-pointer -O1 -g -o CMakeFiles/test_fold.dir/tests/test_fold.c.o -c /home/wubu/WuBuPad/tests/test_fold.c",
+  "file": "/home/wubu/WuBuPad/tests/test_fold.c",
+  "output": "CMakeFiles/test_fold.dir/tests/test_fold.c.o"
+},
+{
+  "directory": "/home/wubu/WuBuPad/build-asan",
+  "command": "/usr/bin/cc -DWUBUPAD_WITH_GFX=1 -DWUBUPAD_WITH_SHAPE=1 -I/home/wubu/WuBuPad/src -I/home/wubu/WuBuPad/src/command -I/home/wubu/WuBuPad/src/fuzzy -I/home/wubu/WuBuPad/src/palette -I/home/wubu/WuBuPad/src/pkgmgr -I/home/wubu/WuBuPad/src/treeview -I/home/wubu/WuBuPad/src/snippet -I/home/wubu/WuBuPad/src/multicursor -I/home/wubu/WuBuPad/src/autoindent -I/home/wubu/WuBuPad/src/minimap -I/home/wubu/WuBuPad/src/mdpreview -g -std=gnu11 -fsanitize=address,undefined -fno-omit-frame-pointer -O1 -g -o CMakeFiles/test_complete.dir/tests/test_complete.c.o -c /home/wubu/WuBuPad/tests/test_complete.c",
+  "file": "/home/wubu/WuBuPad/tests/test_complete.c",
+  "output": "CMakeFiles/test_complete.dir/tests/test_complete.c.o"
+},
+{
+  "directory": "/home/wubu/WuBuPad/build-asan",
+  "command": "/usr/bin/cc -DWUBUPAD_WITH_GFX=1 -DWUBUPAD_WITH_SHAPE=1 -I/home/wubu/WuBuPad/src -I/home/wubu/WuBuPad/src/command -I/home/wubu/WuBuPad/src/fuzzy -I/home/wubu/WuBuPad/src/palette -I/home/wubu/WuBuPad/src/pkgmgr -I/home/wubu/WuBuPad/src/treeview -I/home/wubu/WuBuPad/src/snippet -I/home/wubu/WuBuPad/src/multicursor -I/home/wubu/WuBuPad/src/autoindent -I/home/wubu/WuBuPad/src/minimap -I/home/wubu/WuBuPad/src/mdpreview -g -std=gnu11 -fsanitize=address,undefined -fno-omit-frame-pointer -O1 -g -o CMakeFiles/test_editor.dir/tests/test_editor.c.o -c /home/wubu/WuBuPad/tests/test_editor.c",
+  "file": "/home/wubu/WuBuPad/tests/test_editor.c",
+  "output": "CMakeFiles/test_editor.dir/tests/test_editor.c.o"
+},
+{
+  "directory": "/home/wubu/WuBuPad/build-asan",
+  "command": "/usr/bin/cc -DWUBUPAD_WITH_GFX=1 -DWUBUPAD_WITH_SHAPE=1 -I/home/wubu/WuBuPad/src -I/home/wubu/WuBuPad/src/command -I/home/wubu/WuBuPad/src/fuzzy -I/home/wubu/WuBuPad/src/palette -I/home/wubu/WuBuPad/src/pkgmgr -I/home/wubu/WuBuPad/src/treeview -I/home/wubu/WuBuPad/src/snippet -I/home/wubu/WuBuPad/src/multicursor -I/home/wubu/WuBuPad/src/autoindent -I/home/wubu/WuBuPad/src/minimap -I/home/wubu/WuBuPad/src/mdpreview -g -std=gnu11 -fsanitize=address,undefined -fno-omit-frame-pointer -O1 -g -o CMakeFiles/test_theme.dir/tests/test_theme.c.o -c /home/wubu/WuBuPad/tests/test_theme.c",
+  "file": "/home/wubu/WuBuPad/tests/test_theme.c",
+  "output": "CMakeFiles/test_theme.dir/tests/test_theme.c.o"
+},
+{
+  "directory": "/home/wubu/WuBuPad/build-asan",
+  "command": "/usr/bin/cc -DWUBUPAD_WITH_GFX=1 -DWUBUPAD_WITH_SHAPE=1 -I/home/wubu/WuBuPad/src -I/home/wubu/WuBuPad/src/command -I/home/wubu/WuBuPad/src/fuzzy -I/home/wubu/WuBuPad/src/palette -I/home/wubu/WuBuPad/src/pkgmgr -I/home/wubu/WuBuPad/src/treeview -I/home/wubu/WuBuPad/src/snippet -I/home/wubu/WuBuPad/src/multicursor -I/home/wubu/WuBuPad/src/autoindent -I/home/wubu/WuBuPad/src/minimap -I/home/wubu/WuBuPad/src/mdpreview -g -std=gnu11 -fsanitize=address,undefined -fno-omit-frame-pointer -O1 -g -o CMakeFiles/test_find.dir/tests/test_find.c.o -c /home/wubu/WuBuPad/tests/test_find.c",
+  "file": "/home/wubu/WuBuPad/tests/test_find.c",
+  "output": "CMakeFiles/test_find.dir/tests/test_find.c.o"
+},
+{
+  "directory": "/home/wubu/WuBuPad/build-asan",
+  "command": "/usr/bin/cc -DWUBUPAD_WITH_GFX=1 -DWUBUPAD_WITH_SHAPE=1 -I/home/wubu/WuBuPad/src -I/home/wubu/WuBuPad/src/command -I/home/wubu/WuBuPad/src/fuzzy -I/home/wubu/WuBuPad/src/palette -I/home/wubu/WuBuPad/src/pkgmgr -I/home/wubu/WuBuPad/src/treeview -I/home/wubu/WuBuPad/src/snippet -I/home/wubu/WuBuPad/src/multicursor -I/home/wubu/WuBuPad/src/autoindent -I/home/wubu/WuBuPad/src/minimap -I/home/wubu/WuBuPad/src/mdpreview -g -std=gnu11 -fsanitize=address,undefined -fno-omit-frame-pointer -O1 -g -o CMakeFiles/test_ui.dir/tests/test_ui.c.o -c /home/wubu/WuBuPad/tests/test_ui.c",
+  "file": "/home/wubu/WuBuPad/tests/test_ui.c",
+  "output": "CMakeFiles/test_ui.dir/tests/test_ui.c.o"
+},
+{
+  "directory": "/home/wubu/WuBuPad/build-asan",
+  "command": "/usr/bin/cc -DWUBUPAD_WITH_GFX=1 -DWUBUPAD_WITH_SHAPE=1 -I/home/wubu/WuBuPad/src -I/home/wubu/WuBuPad/src/command -I/home/wubu/WuBuPad/src/fuzzy -I/home/wubu/WuBuPad/src/palette -I/home/wubu/WuBuPad/src/pkgmgr -I/home/wubu/WuBuPad/src/treeview -I/home/wubu/WuBuPad/src/snippet -I/home/wubu/WuBuPad/src/multicursor -I/home/wubu/WuBuPad/src/autoindent -I/home/wubu/WuBuPad/src/minimap -I/home/wubu/WuBuPad/src/mdpreview -I/usr/include/harfbuzz -I/usr/include/libpng16 -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I/usr/include/fribidi -isystem /usr/include/freetype2 -isystem /usr/include/SDL2 -g -std=gnu11 -fsanitize=address,undefined -fno-omit-frame-pointer -O1 -g -o CMakeFiles/test_ui_gfx.dir/tests/test_ui_gfx.c.o -c /home/wubu/WuBuPad/tests/test_ui_gfx.c",
+  "file": "/home/wubu/WuBuPad/tests/test_ui_gfx.c",
+  "output": "CMakeFiles/test_ui_gfx.dir/tests/test_ui_gfx.c.o"
+},
+{
+  "directory": "/home/wubu/WuBuPad/build-asan",
+  "command": "/usr/bin/cc -DWUBUPAD_WITH_GFX=1 -DWUBUPAD_WITH_SHAPE=1 -I/home/wubu/WuBuPad/src -I/usr/include/harfbuzz -I/usr/include/libpng16 -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I/usr/include/fribidi -isystem /usr/include/freetype2 -g -std=gnu11 -fsanitize=address,undefined -fno-omit-frame-pointer -O1 -g -o CMakeFiles/test_shape.dir/tests/test_shape.c.o -c /home/wubu/WuBuPad/tests/test_shape.c",
+  "file": "/home/wubu/WuBuPad/tests/test_shape.c",
+  "output": "CMakeFiles/test_shape.dir/tests/test_shape.c.o"
+},
+{
+  "directory": "/home/wubu/WuBuPad/build-asan",
+  "command": "/usr/bin/cc -DWUBUPAD_WITH_GFX=1 -DWUBUPAD_WITH_SHAPE=1 -I/home/wubu/WuBuPad/src -g -std=gnu11 -fsanitize=address,undefined -fno-omit-frame-pointer -O1 -g -o CMakeFiles/test_agent.dir/tests/test_agent.c.o -c /home/wubu/WuBuPad/tests/test_agent.c",
+  "file": "/home/wubu/WuBuPad/tests/test_agent.c",
+  "output": "CMakeFiles/test_agent.dir/tests/test_agent.c.o"
+},
+{
+  "directory": "/home/wubu/WuBuPad/build-asan/src/command",
+  "command": "/usr/bin/cc -DWUBUPAD_WITH_GFX=1 -DWUBUPAD_WITH_SHAPE=1 -I/home/wubu/WuBuPad/src/command -g -std=gnu11 -fsanitize=address,undefined -fno-omit-frame-pointer -O1 -g -o CMakeFiles/wubupad_command.dir/command.c.o -c /home/wubu/WuBuPad/src/command/command.c",
+  "file": "/home/wubu/WuBuPad/src/command/command.c",
+  "output": "src/command/CMakeFiles/wubupad_command.dir/command.c.o"
+},
+{
+  "directory": "/home/wubu/WuBuPad/build-asan/src/command",
+  "command": "/usr/bin/cc -DWUBUPAD_WITH_GFX=1 -DWUBUPAD_WITH_SHAPE=1 -I/home/wubu/WuBuPad/src/command -g -std=gnu11 -fsanitize=address,undefined -fno-omit-frame-pointer -O1 -g -o CMakeFiles/test_command.dir/test_command.c.o -c /home/wubu/WuBuPad/src/command/test_command.c",
+  "file": "/home/wubu/WuBuPad/src/command/test_command.c",
+  "output": "src/command/CMakeFiles/test_command.dir/test_command.c.o"
+},
+{
+  "directory": "/home/wubu/WuBuPad/build-asan/src/fuzzy",
+  "command": "/usr/bin/cc -DWUBUPAD_WITH_GFX=1 -DWUBUPAD_WITH_SHAPE=1 -I/home/wubu/WuBuPad/src/fuzzy -g -std=gnu11 -fsanitize=address,undefined -fno-omit-frame-pointer -O1 -g -o CMakeFiles/wubupad_fuzzy.dir/fuzzy.c.o -c /home/wubu/WuBuPad/src/fuzzy/fuzzy.c",
+  "file": "/home/wubu/WuBuPad/src/fuzzy/fuzzy.c",
+  "output": "src/fuzzy/CMakeFiles/wubupad_fuzzy.dir/fuzzy.c.o"
+},
+{
+  "directory": "/home/wubu/WuBuPad/build-asan/src/fuzzy",
+  "command": "/usr/bin/cc -DWUBUPAD_WITH_GFX=1 -DWUBUPAD_WITH_SHAPE=1 -I/home/wubu/WuBuPad/src/fuzzy -g -std=gnu11 -fsanitize=address,undefined -fno-omit-frame-pointer -O1 -g -o CMakeFiles/test_fuzzy.dir/test_fuzzy.c.o -c /home/wubu/WuBuPad/src/fuzzy/test_fuzzy.c",
+  "file": "/home/wubu/WuBuPad/src/fuzzy/test_fuzzy.c",
+  "output": "src/fuzzy/CMakeFiles/test_fuzzy.dir/test_fuzzy.c.o"
+},
+{
+  "directory": "/home/wubu/WuBuPad/build-asan/src/palette",
+  "command": "/usr/bin/cc -DWUBUPAD_WITH_GFX=1 -DWUBUPAD_WITH_SHAPE=1 -I/home/wubu/WuBuPad/src/palette -I/home/wubu/WuBuPad/src/command -I/home/wubu/WuBuPad/src/fuzzy -g -std=gnu11 -fsanitize=address,undefined -fno-omit-frame-pointer -O1 -g -o CMakeFiles/wubupad_palette.dir/palette.c.o -c /home/wubu/WuBuPad/src/palette/palette.c",
+  "file": "/home/wubu/WuBuPad/src/palette/palette.c",
+  "output": "src/palette/CMakeFiles/wubupad_palette.dir/palette.c.o"
+},
+{
+  "directory": "/home/wubu/WuBuPad/build-asan/src/palette",
+  "command": "/usr/bin/cc -DWUBUPAD_WITH_GFX=1 -DWUBUPAD_WITH_SHAPE=1 -I/home/wubu/WuBuPad/src/palette -I/home/wubu/WuBuPad/src/command -I/home/wubu/WuBuPad/src/fuzzy -g -std=gnu11 -fsanitize=address,undefined -fno-omit-frame-pointer -O1 -g -o CMakeFiles/test_palette.dir/test_palette.c.o -c /home/wubu/WuBuPad/src/palette/test_palette.c",
+  "file": "/home/wubu/WuBuPad/src/palette/test_palette.c",
+  "output": "src/palette/CMakeFiles/test_palette.dir/test_palette.c.o"
+},
+{
+  "directory": "/home/wubu/WuBuPad/build-asan/src/pkgmgr",
+  "command": "/usr/bin/cc -DWUBUPAD_WITH_GFX=1 -DWUBUPAD_WITH_SHAPE=1 -I/home/wubu/WuBuPad/src/pkgmgr -I/home/wubu/WuBuPad/src/command -I/home/wubu/WuBuPad/src -g -std=gnu11 -fsanitize=address,undefined -fno-omit-frame-pointer -O1 -g -o CMakeFiles/wubupad_pkgmgr.dir/pkgmgr.c.o -c /home/wubu/WuBuPad/src/pkgmgr/pkgmgr.c",
+  "file": "/home/wubu/WuBuPad/src/pkgmgr/pkgmgr.c",
+  "output": "src/pkgmgr/CMakeFiles/wubupad_pkgmgr.dir/pkgmgr.c.o"
+},
+{
+  "directory": "/home/wubu/WuBuPad/build-asan/src/pkgmgr",
+  "command": "/usr/bin/cc -DWUBUPAD_WITH_GFX=1 -DWUBUPAD_WITH_SHAPE=1 -I/home/wubu/WuBuPad/src/pkgmgr -I/home/wubu/WuBuPad/src/command -I/home/wubu/WuBuPad/src -g -std=gnu11 -fsanitize=address,undefined -fno-omit-frame-pointer -O1 -g -o CMakeFiles/test_pkgmgr.dir/test_pkgmgr.c.o -c /home/wubu/WuBuPad/src/pkgmgr/test_pkgmgr.c",
+  "file": "/home/wubu/WuBuPad/src/pkgmgr/test_pkgmgr.c",
+  "output": "src/pkgmgr/CMakeFiles/test_pkgmgr.dir/test_pkgmgr.c.o"
+},
+{
+  "directory": "/home/wubu/WuBuPad/build-asan/src/treeview",
+  "command": "/usr/bin/cc -DWUBUPAD_WITH_GFX=1 -DWUBUPAD_WITH_SHAPE=1 -I/home/wubu/WuBuPad/src/treeview -g -std=gnu11 -fsanitize=address,undefined -fno-omit-frame-pointer -O1 -g -o CMakeFiles/wubupad_treeview.dir/treeview.c.o -c /home/wubu/WuBuPad/src/treeview/treeview.c",
+  "file": "/home/wubu/WuBuPad/src/treeview/treeview.c",
+  "output": "src/treeview/CMakeFiles/wubupad_treeview.dir/treeview.c.o"
+},
+{
+  "directory": "/home/wubu/WuBuPad/build-asan/src/treeview",
+  "command": "/usr/bin/cc -DWUBUPAD_WITH_GFX=1 -DWUBUPAD_WITH_SHAPE=1 -I/home/wubu/WuBuPad/src/treeview -g -std=gnu11 -fsanitize=address,undefined -fno-omit-frame-pointer -O1 -g -o CMakeFiles/test_treeview.dir/test_treeview.c.o -c /home/wubu/WuBuPad/src/treeview/test_treeview.c",
+  "file": "/home/wubu/WuBuPad/src/treeview/test_treeview.c",
+  "output": "src/treeview/CMakeFiles/test_treeview.dir/test_treeview.c.o"
+},
+{
+  "directory": "/home/wubu/WuBuPad/build-asan/src/snippet",
+  "command": "/usr/bin/cc -DWUBUPAD_WITH_GFX=1 -DWUBUPAD_WITH_SHAPE=1 -I/home/wubu/WuBuPad/src/snippet -g -std=gnu11 -fsanitize=address,undefined -fno-omit-frame-pointer -O1 -g -o CMakeFiles/wubupad_snippet.dir/snippet.c.o -c /home/wubu/WuBuPad/src/snippet/snippet.c",
+  "file": "/home/wubu/WuBuPad/src/snippet/snippet.c",
+  "output": "src/snippet/CMakeFiles/wubupad_snippet.dir/snippet.c.o"
+},
+{
+  "directory": "/home/wubu/WuBuPad/build-asan/src/snippet",
+  "command": "/usr/bin/cc -DWUBUPAD_WITH_GFX=1 -DWUBUPAD_WITH_SHAPE=1 -I/home/wubu/WuBuPad/src/snippet -g -std=gnu11 -fsanitize=address,undefined -fno-omit-frame-pointer -O1 -g -o CMakeFiles/test_snippet.dir/test_snippet.c.o -c /home/wubu/WuBuPad/src/snippet/test_snippet.c",
+  "file": "/home/wubu/WuBuPad/src/snippet/test_snippet.c",
+  "output": "src/snippet/CMakeFiles/test_snippet.dir/test_snippet.c.o"
+},
+{
+  "directory": "/home/wubu/WuBuPad/build-asan/src/multicursor",
+  "command": "/usr/bin/cc -DWUBUPAD_WITH_GFX=1 -DWUBUPAD_WITH_SHAPE=1 -I/home/wubu/WuBuPad/src/multicursor -g -std=gnu11 -fsanitize=address,undefined -fno-omit-frame-pointer -O1 -g -o CMakeFiles/wubupad_multicursor.dir/multicursor.c.o -c /home/wubu/WuBuPad/src/multicursor/multicursor.c",
+  "file": "/home/wubu/WuBuPad/src/multicursor/multicursor.c",
+  "output": "src/multicursor/CMakeFiles/wubupad_multicursor.dir/multicursor.c.o"
+},
+{
+  "directory": "/home/wubu/WuBuPad/build-asan/src/multicursor",
+  "command": "/usr/bin/cc -DWUBUPAD_WITH_GFX=1 -DWUBUPAD_WITH_SHAPE=1 -I/home/wubu/WuBuPad/src/multicursor -g -std=gnu11 -fsanitize=address,undefined -fno-omit-frame-pointer -O1 -g -o CMakeFiles/test_multicursor.dir/test_multicursor.c.o -c /home/wubu/WuBuPad/src/multicursor/test_multicursor.c",
+  "file": "/home/wubu/WuBuPad/src/multicursor/test_multicursor.c",
+  "output": "src/multicursor/CMakeFiles/test_multicursor.dir/test_multicursor.c.o"
+},
+{
+  "directory": "/home/wubu/WuBuPad/build-asan/src/autoindent",
+  "command": "/usr/bin/cc -DWUBUPAD_WITH_GFX=1 -DWUBUPAD_WITH_SHAPE=1 -I/home/wubu/WuBuPad/src/autoindent -g -std=gnu11 -fsanitize=address,undefined -fno-omit-frame-pointer -O1 -g -o CMakeFiles/wubupad_autoindent.dir/autoindent.c.o -c /home/wubu/WuBuPad/src/autoindent/autoindent.c",
+  "file": "/home/wubu/WuBuPad/src/autoindent/autoindent.c",
+  "output": "src/autoindent/CMakeFiles/wubupad_autoindent.dir/autoindent.c.o"
+},
+{
+  "directory": "/home/wubu/WuBuPad/build-asan/src/autoindent",
+  "command": "/usr/bin/cc -DWUBUPAD_WITH_GFX=1 -DWUBUPAD_WITH_SHAPE=1 -I/home/wubu/WuBuPad/src/autoindent -g -std=gnu11 -fsanitize=address,undefined -fno-omit-frame-pointer -O1 -g -o CMakeFiles/test_autoindent.dir/test_autoindent.c.o -c /home/wubu/WuBuPad/src/autoindent/test_autoindent.c",
+  "file": "/home/wubu/WuBuPad/src/autoindent/test_autoindent.c",
+  "output": "src/autoindent/CMakeFiles/test_autoindent.dir/test_autoindent.c.o"
+},
+{
+  "directory": "/home/wubu/WuBuPad/build-asan/src/minimap",
+  "command": "/usr/bin/cc -DWUBUPAD_WITH_GFX=1 -DWUBUPAD_WITH_SHAPE=1 -I/home/wubu/WuBuPad/src/minimap -g -std=gnu11 -fsanitize=address,undefined -fno-omit-frame-pointer -O1 -g -o CMakeFiles/wubupad_minimap.dir/minimap.c.o -c /home/wubu/WuBuPad/src/minimap/minimap.c",
+  "file": "/home/wubu/WuBuPad/src/minimap/minimap.c",
+  "output": "src/minimap/CMakeFiles/wubupad_minimap.dir/minimap.c.o"
+},
+{
+  "directory": "/home/wubu/WuBuPad/build-asan/src/minimap",
+  "command": "/usr/bin/cc -DWUBUPAD_WITH_GFX=1 -DWUBUPAD_WITH_SHAPE=1 -I/home/wubu/WuBuPad/src/minimap -g -std=gnu11 -fsanitize=address,undefined -fno-omit-frame-pointer -O1 -g -o CMakeFiles/test_minimap.dir/test_minimap.c.o -c /home/wubu/WuBuPad/src/minimap/test_minimap.c",
+  "file": "/home/wubu/WuBuPad/src/minimap/test_minimap.c",
+  "output": "src/minimap/CMakeFiles/test_minimap.dir/test_minimap.c.o"
+},
+{
+  "directory": "/home/wubu/WuBuPad/build-asan/src/mdpreview",
+  "command": "/usr/bin/cc -DWUBUPAD_WITH_GFX=1 -DWUBUPAD_WITH_SHAPE=1 -I/home/wubu/WuBuPad/src/mdpreview -g -std=gnu11 -fsanitize=address,undefined -fno-omit-frame-pointer -O1 -g -o CMakeFiles/wubupad_mdpreview.dir/mdpreview.c.o -c /home/wubu/WuBuPad/src/mdpreview/mdpreview.c",
+  "file": "/home/wubu/WuBuPad/src/mdpreview/mdpreview.c",
+  "output": "src/mdpreview/CMakeFiles/wubupad_mdpreview.dir/mdpreview.c.o"
+},
+{
+  "directory": "/home/wubu/WuBuPad/build-asan/src/mdpreview",
+  "command": "/usr/bin/cc -DWUBUPAD_WITH_GFX=1 -DWUBUPAD_WITH_SHAPE=1 -I/home/wubu/WuBuPad/src/mdpreview -g -std=gnu11 -fsanitize=address,undefined -fno-omit-frame-pointer -O1 -g -o CMakeFiles/test_mdpreview.dir/test_mdpreview.c.o -c /home/wubu/WuBuPad/src/mdpreview/test_mdpreview.c",
+  "file": "/home/wubu/WuBuPad/src/mdpreview/test_mdpreview.c",
+  "output": "src/mdpreview/CMakeFiles/test_mdpreview.dir/test_mdpreview.c.o"
+}
+]

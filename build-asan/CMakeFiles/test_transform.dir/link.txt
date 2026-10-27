@@ -1,0 +1,1 @@
+/usr/bin/cc -g -fsanitize=address,undefined CMakeFiles/test_transform.dir/tests/test_transform.c.o -o test_transform  libwubupad_core.a 
