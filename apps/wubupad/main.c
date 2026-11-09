@@ -81,7 +81,19 @@ int main(int argc, char **argv) {
     }
     Doc *d = docs_doc(docs, docs_active(docs));
 
+#ifdef WUBUPAD_WITH_GFX
     const UI_Backend *be = gfx_mode ? ui_gfx_backend() : ui_tty_backend();
+#else
+    /* No SDL2/FreeType at build time: the gfx backend is not linked, so the
+     * symbol does not exist.  Fall back to the tty backend rather than
+     * breaking the build. */
+    const UI_Backend *be = ui_tty_backend();
+    if (gfx_mode) {
+        fprintf(stderr, "wubupad: built without SDL2/FreeType -- using the "
+                        "terminal backend\n");
+        gfx_mode = 0;
+    }
+#endif
     UI *ui = ui_create(d, be, 0, 0);
     if (!ui) { fprintf(stderr, "ui_create failed\n"); docs_free(docs); return 1; }
     ui_set_docs(ui, docs);

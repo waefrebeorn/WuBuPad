@@ -67,6 +67,14 @@ add_test(NAME transform COMMAND test_transform)
 # tests, and the WuBuOffice bridge) and an optional gfx lib (SDL2+FreeType2)
 # that only adds the graphical backend. This keeps SDL2/Freetype out of the
 # headless path entirely.
+# Shared GUI-audit tooling (gui_audit_pad.sh, wcag_palette.py,
+# design_ratios.py).  It lives OUTSIDE this repository in the usual checkout
+# layout, so it is a cache path: point WUBUPAD_TOOLING_DIR at the real
+# directory.  When it is absent the GUI gates report SKIP instead of FAIL --
+# a missing audit tool is not a product defect.
+set(WUBUPAD_TOOLING_DIR "${CMAKE_SOURCE_DIR}/../tooling" CACHE PATH
+    "Directory holding the shared WuBu GUI audit tooling")
+
 find_package(SDL2 QUIET)
 find_package(Freetype QUIET)
 set(WUBUPAD_WITH_GFX OFF)
@@ -199,18 +207,39 @@ add_test(NAME ui COMMAND test_ui)
 
 # GUI human-parity: capture a WuBuPad frame and pixel-audit chrome regions
 # (menu, tabs, status). Fails if any is illegible. No vision, fast dev-cycle.
-add_test(NAME gui_parity COMMAND bash ${CMAKE_SOURCE_DIR}/../tooling/gui_audit_pad.sh)
-set_tests_properties(gui_parity PROPERTIES RUN_SERIAL TRUE TIMEOUT 60)
+if(EXISTS "${WUBUPAD_TOOLING_DIR}/gui_audit_pad.sh")
+  add_test(NAME gui_parity COMMAND bash "${WUBUPAD_TOOLING_DIR}/gui_audit_pad.sh")
+  set_tests_properties(gui_parity PROPERTIES RUN_SERIAL TRUE TIMEOUT 60)
+else()
+  add_test(NAME gui_parity COMMAND
+           ${CMAKE_COMMAND} -E echo "SKIP: gui_parity -- set WUBUPAD_TOOLING_DIR to the shared tooling directory")
+  set_tests_properties(gui_parity PROPERTIES RUN_SERIAL TRUE TIMEOUT 60
+                       PASS_REGULAR_EXPRESSION "SKIP")
+endif()
 
 # WCAG AA palette gate: every text token vs its surface must be >= 4.5:1
 # (dark + light). Deterministic, no image. Catches dim-text accessibility
 # regressions (research 2026-08-12: dark mode must test each color, not assume).
-add_test(NAME wcag COMMAND python3 ${CMAKE_SOURCE_DIR}/../tooling/wcag_palette.py)
-set_tests_properties(wcag PROPERTIES LABELS "accessibility;gui")
+if(EXISTS "${WUBUPAD_TOOLING_DIR}/wcag_palette.py")
+  add_test(NAME wcag COMMAND python3 "${WUBUPAD_TOOLING_DIR}/wcag_palette.py")
+  set_tests_properties(wcag PROPERTIES LABELS "accessibility;gui")
+else()
+  add_test(NAME wcag COMMAND
+           ${CMAKE_COMMAND} -E echo "SKIP: wcag -- set WUBUPAD_TOOLING_DIR to the shared tooling directory")
+  set_tests_properties(wcag PROPERTIES LABELS "accessibility;gui"
+                       PASS_REGULAR_EXPRESSION "SKIP")
+endif()
 
 # Designer-ratio gate: type scale, vertical rhythm, spacing grid, hit-targets.
-add_test(NAME design_ratios COMMAND python3 ${CMAKE_SOURCE_DIR}/../tooling/design_ratios.py wubupad)
-set_tests_properties(design_ratios PROPERTIES LABELS "design;gui")
+if(EXISTS "${WUBUPAD_TOOLING_DIR}/design_ratios.py")
+  add_test(NAME design_ratios COMMAND python3 "${WUBUPAD_TOOLING_DIR}/design_ratios.py" wubupad)
+  set_tests_properties(design_ratios PROPERTIES LABELS "design;gui")
+else()
+  add_test(NAME design_ratios COMMAND
+           ${CMAKE_COMMAND} -E echo "SKIP: design_ratios -- set WUBUPAD_TOOLING_DIR to the shared tooling directory")
+  set_tests_properties(design_ratios PROPERTIES LABELS "design;gui"
+                       PASS_REGULAR_EXPRESSION "SKIP")
+endif()
 
 # Graphics backend test (only meaningful when gfx is linked; test guards itself
 # by returning PASS-skip if SDL/FreeType were unavailable at build time).
