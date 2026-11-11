@@ -10,6 +10,8 @@ WuBuPad's headless core (piece-table buffer, C/JSON lexers, undo/redo,
 cursor/selection, search, encoding, line diff, multi-doc session) is
 designed to be embedded — notably as the Editor view inside WuBuOffice.
 
+> **~WuBu~ AGI** — one system, many repositories. This is the **code editor**. The Body is [WuBuOS](https://github.com/waefrebeorn/WuBuOS), the Brain wubuwizard, the Compiler WuBuNOS.
+
 ## License
 
 **Waefrebeorn Umbrella License v3.0** — custom source-available license.
